@@ -1,0 +1,307 @@
+{% extends 'layout.twig' %}
+
+{% macro getBorderColour(status) %}
+    {% if status == 'uploaded' %}border-left-primary{% endif %}
+    {% if status == 'encoding' %}border-left-warning{% endif %}
+    {% if status == 'deleted' %}border-left-danger{% endif %}
+    {% if status == 'published' %}border-left-success{% endif %}
+{% endmacro %}
+{% macro getTextColour(status) %}
+    {% if status == 'uploaded' %}text-primary{% endif %}
+    {% if status == 'encoding' %}text-warning{% endif %}
+    {% if status == 'deleted' %}text-danger{% endif %}
+    {% if status == 'published' %}text-success{% endif %}
+{% endmacro %}
+{% macro getIcon(status) %}
+    {% if status == 'uploaded' %}fa-upload{% endif %}
+    {% if status == 'encoding' %}fa-spin fa-cog{% endif %}
+    {% if status == 'deleted' %}fa-trash{% endif %}
+    {% if status == 'published' %}fa-broadcast-tower{% endif %}
+{% endmacro %}
+{% macro getStatusText(status) %}
+    {% if status == 'uploaded' %}Uploaded{% endif %}
+    {% if status == 'encoding' %}Encoding{% endif %}
+    {% if status == 'deleted' %}Deleted{% endif %}
+    {% if status == 'published' %}Published{% endif %}
+    {% if status == 'encoding_failed' %}Encoding Failed. Please contact support{% endif %}
+    {% if status == 'encoding_queued' %}Queued for encoding{% endif %}
+{% endmacro %}
+{% import _self as helper %}
+
+
+{% block css %}
+    <link rel="stylesheet" href="/css/editor/css/editormd.css"/>
+    <style>
+        .swal-overlay, .editormd {
+            z-index: 10000000001;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Write Blog</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <label for="title">Title</label>
+                <input type="text" id="title" class="form-control">
+                <label for="category">Category</label>
+                <select id="category" class="form-control mb-4">
+                    {% for category in categories %}
+                    {% if not category.videoOnly %}<option value="{{ category.code }}">{{ category.display }}</option>{% endif %}
+                    {% endfor %}
+                </select>
+                <div class="form-group">
+                    <label for="thumbnail">Thumbnail</label>
+                    <div>
+                        <img src="/img/default-thumbnail.jpg" style="max-width: 200px;cursor: pointer;" alt="" id="thumbnail">
+                    </div>
+                    <small>Click the thumbnail to change it</small>
+                    <input accept="image/*" type="file" id="thumbnail_input" class="d-none">
+
+                </div>
+                <div id="editor" class="mb-0 "><textarea style="display:none;"></textarea></div>
+
+                <div class="text-right mt-4 mb-4">
+                    <div class="btn-group">
+                        <button id="save" class="btn btn-primary"><i class="fa fa-spinner fa-spin d-none mx-1"></i>Save</button>
+                        <button id="saveandpublish" class="btn btn-success"><i class="fa fa-spinner fa-spin d-none mx-1"></i>Save & Publish</button>
+                        <button class="btn btn-danger" id="delete"><i class="fa fa-spinner fa-spin d-none mx-1"></i>Delete</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+
+{% block js %}
+    <script src="/editor/editormd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+    <script src="/editor/languages/en.js"></script>
+    <script src="/editor/simpleUpload.js"></script>
+    <script src="/js/xss.js"></script>
+    <script>
+
+        window.post = '{{ draft|striptags }}';
+
+        $(() => {
+            $('#thumbnail').click(() => {
+                $('#thumbnail_input').click();
+            });
+            $('#thumbnail_input').on("change", ((e) => {
+                $('#thumbnail').attr("src", URL.createObjectURL(e.target.files[0]))
+            }));
+
+            $('#delete').click(()=>{
+                $('#delete i').removeClass('d-none');
+                $.ajax({
+                    url:'/api/blog/delete',
+                    type: 'post',
+                    data:{
+                        id: '{{ draft|striptags }}',
+                    },
+                    success: () => {
+                        $('#delete i').addClass('d-none');
+                        window.location.href="/my-blogs";
+                    }
+                })
+            })
+
+            $('#save').click(undefined => {
+                $('#save i').removeClass('d-none');
+                $.ajax({
+                    url: '/api/blog/save',
+                    type: 'post',
+                    data: {
+                        id: '{{ draft|striptags }}',
+                        title: $('#title').val(),
+                        category: $('#category').val(),
+                        body: window.odEditor.getMarkdown()
+                    },
+                    success: undefined => {
+                        $('#save i').addClass('d-none');
+                        swal({
+                            title: 'Awesome',
+                            icon: 'success',
+                            text: 'Your draft was saved!',
+                            button: {
+                                text: "OK",
+                                value: true,
+                                visible: true,
+                                className: "btn btn-primary"
+                            }
+                        })
+                    },
+                    error: (error) => {
+                        $('#save i').addClass('d-none');
+                        swal({
+                            title: 'Oh no.',
+                            icon: 'error',
+                            text: 'Something went wrong and your blog could not be saved.',
+                            button: {
+                                text: "OK",
+                                value: true,
+                                visible: true,
+                                className: "btn btn-primary"
+                            }
+                        })
+                    }
+                })
+            });
+            $('#saveandpublish').click(undefined => {
+
+                if ($('#thumbnail_input').prop("files").length !== 1) {
+                    return toastr["error"]("Please add a thumbnail for your video.")
+                }
+
+                $('#saveandpublish i').removeClass('d-none');
+
+                let data = {
+                    id: '{{ draft|striptags }}',
+                    title: $('#title').val(),
+                    category: $('#category').val(),
+                    body: window.odEditor.getMarkdown(),
+                    thumbnail: null
+                };
+
+                let thumbnail = {image: $('#thumbnail_input').prop("files")[0]};
+                let formData = new FormData();
+
+                for ( var key in thumbnail ) {
+                    formData.append(key, thumbnail[key]);
+                }
+
+                $.ajax({
+                    url: '/api/upload/',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: () => {
+
+                    },
+                    success: (res) => {
+                        console.log(res);
+                        data.thumbnail = res.secure_url;
+                        $.ajax({
+                            url: '/api/blog/saveandpublish',
+                            type: 'POST',
+                            data: data,
+                            success: (res) => {
+                                if (res.error) {
+                                    swal({
+                                        title: 'Oh no.',
+                                        icon: 'error',
+                                        text: 'Something went wrong and your blog could not be published. ' +
+                                            'Please contact the support for more information.',
+                                        button: {
+                                            text: "OK",
+                                            value: true,
+                                            visible: true,
+                                            className: "btn btn-primary"
+                                        }
+                                    }).then(() => {
+                                        window.location.href = "/my-blogs";
+                                    })
+                                } else {
+                                    swal({
+                                        title: 'Awesome',
+                                        icon: 'success',
+                                        text: 'Your blog was published!',
+                                        button: {
+                                            text: "OK",
+                                            value: true,
+                                            visible: true,
+                                            className: "btn btn-primary"
+                                        }
+                                    })
+                                }
+
+                            },
+                            error: (error) => {
+                                swal({
+                                    title: 'Oh no.',
+                                    icon: 'error',
+                                    text: 'Something went wrong and your blog could not be saved.',
+                                    button: {
+                                        text: "OK",
+                                        value: true,
+                                        visible: true,
+                                        className: "btn btn-primary"
+                                    }
+                                })
+                            },
+                            complete: (res) => {
+                                $('#saveandpublish i').addClass('d-none');
+                            }
+                        })
+                    },
+                    error: () => {
+                        return toastr["error"]("The thumbnail could not be saved!")
+                    }
+                })
+            });
+
+            $.ajax({
+                url: '/api/blog/' + window.post,
+                success: (res => {
+                    $('#title').val(res.title);
+                    window.odEditor = editormd("editor", {
+                        width: "100%",
+                        height: 640,
+                        syncScrolling: "single",
+                        emailLink: false,
+                        atLink: false,
+                        saveHTMLToTextarea: true,
+                        imageUpload: true,
+                        htmlDecode: 'iframe,src,alt,img,title',
+                        imageFormats: ["png", "gif", "jpg", "jpeg"],
+                        imageUploadURL: "/api/upload",
+                        path: "/editor/lib/",
+                        toolbarIcons: () => {
+                            return "undo,redo,|,bold,del,italic,uppercase,lowercase,|,h1,h2,h3,h4,h5,h6,|,list-ul,list-ol,hr,image,table,|,watch,preview,fullscreen".split(",")
+                        },
+                        // onchange: updateWordCount,
+                        onload: function () {
+
+                            window.odEditor.setMarkdown(filterXSS(res.body, {
+                                stripIgnoreTag: true,
+                                stripIgnoreTagBody: ['script']
+                            }));
+
+                            $('#category').children('option').each((i, e) => {
+                                e = $(e);
+                                if (e.val() === res.category) {
+                                    e.attr("selected", "selected")
+                                } else {
+                                    e.removeAttr("selected")
+                                }
+                            })
+
+                            // if (post.length === 1) {
+                            //     window.odEditor.setMarkdown(filterXSS(post[0].body, {
+                            //         stripIgnoreTag: true,
+                            //         stripIgnoreTagBody: ['script']
+                            //     }))
+                            // }
+                            // updateWordCount(); //init word counter
+                            // save(); //start autosave
+                        }
+                    });
+                })
+            });
+
+
+        })
+    </script>
+{% endblock %}

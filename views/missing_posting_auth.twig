@@ -1,0 +1,28 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Something went wrong!</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <p class="alert alert-danger">
+                    You can not upload videos to 3Speak at the moment. <br>
+                    Reason: <kbd>You have not set "threespeak" as posting authority. Granting "threespeak" posting authority is required to upload videos.</kbd>
+                </p>
+
+
+                <a href="https://hivesigner.com/authorize/threespeak?redirect_uri=http%3A%2F%2F{{ APP_STUDIO_DOMAIN }}%2Fupload" class="btn btn-primary btn-block">Grant "threespeak" posting authority now</a>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}

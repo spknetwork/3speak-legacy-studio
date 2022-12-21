@@ -1,0 +1,142 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col">
+                <p class="alert alert-info w-100">
+                    <b>Important: </b> Images must not be larger than 500kb in size. <br>
+                    <b>Important: </b> Avatars are cached. It can take a while until your new avatar shows up on your channel. Please be patient. <br>
+                </p>
+            </div>
+        </div>
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+
+
+            <h1 class="h3 mb-0 text-gray-800">My Profile</h1>
+
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <fieldset>
+                    <legend>Avatar</legend>
+                    <img src="{{ avatar }}?t={{ ""|date("U") }}" class="img-profile img-thumbnail" style="max-width: 128px" alt="">
+                    <p class="mt-2 mb-0">
+                        <button class="btn btn-primary" id="change">Change Avatar</button>
+                    </p>
+                    <input class="d-none" type="file" id="avatar" name="image" accept=".png,.jpg">
+                </fieldset>
+                <fieldset>
+                    <legend>Channel Cover</legend>
+                    <img src="{{ cover }}?t={{ ""|date("U") }}" class="img-profile img-thumbnail" style="max-height: 250px" alt="">
+                    <p class="mt-2 mb-0">
+                        <button class="btn btn-primary" id="change2">Change Cover</button>
+                    </p>
+                    <input class="d-none" type="file" id="cover" name="image" accept=".png,.jpg">
+                </fieldset>
+
+
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+{% block js %}
+    <script>
+        $(() => {
+            $('#change').click(() => {
+                $('#avatar').click()
+            });
+            $('#change2').click(() => {
+                $('#cover').click()
+            });
+
+            function uploadImage(file, url, cb) {
+
+                let fd = new FormData();
+
+                fd.append("file", file);
+                fd.append('Content-Type', 'image/jpeg');
+
+                window.xhr = new XMLHttpRequest();
+                xhr.addEventListener("load", cb, false);
+
+                xhr.open('PUT', url, true); //MUST BE LAST LINE BEFORE YOU SEND
+
+                xhr.setRequestHeader("Content-Type", "image/jpeg")
+
+                xhr.send(file);
+            }
+
+            $('#avatar').change(() => {
+                showLoader()
+                $.ajax({
+                    url: '/api/upload_image',
+                    type: 'POST',
+                    success: function (data) {
+                        uploadImage($('#avatar').prop("files")[0], data.upload_to, () => {
+                            $.ajax({
+                                url: '/api/update_profile',
+                                type: 'post',
+                                data: {
+                                    avatar: data.upload_to.split("?")[0]
+                                },
+                                success: () => {
+                                    hideLoader()
+                                    return toastr["success"]("Saved!")
+                                },
+                                error: () => {
+                                    hideLoader()
+                                    return toastr["error"]("Avatar could not be updated!")
+                                }
+                            })
+
+                        })
+
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            })
+            $('#cover').change(() => {
+                showLoader()
+                $.ajax({
+                    url: '/api/upload_image',
+                    type: 'POST',
+                    success: function (data) {
+                        uploadImage($('#cover').prop("files")[0], data.upload_to, () => {
+                            $.ajax({
+                                url: '/api/update_profile',
+                                type: 'post',
+                                data: {
+                                    cover: data.upload_to.split("?")[0]
+                                },
+                                success: () => {
+                                    hideLoader()
+                                    return toastr["success"]("Saved!")
+                                },
+                                error: () => {
+                                    hideLoader()
+                                    return toastr["error"]("Avatar could not be updated!")
+                                }
+                            })
+
+                        })
+
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            })
+        })
+    </script>
+{% endblock %}

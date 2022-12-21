@@ -1,0 +1,898 @@
+{% extends 'layout.twig' %}
+
+{% block meta %}
+    <meta property="og:title" content="{{ channel.username }} Blog - 3speak.tv">
+    <meta property="og:description" content="Read the latest blogs from {{ channel.username }}">
+    <meta property="og:image" content="{{ channel.username|avatar }}">
+    <meta property="og:url" content="https://{{ APP_PAGE_DOMAIN }}/user/{{ channel.username }}/blog">
+    <meta property="og:site_name" content="3Speak">
+{% endblock %}
+
+{% block css %}
+
+    <style>
+        .sidebar-toggled .single-channel-page {
+            padding: 0px 0px 0px 90px;
+            padding-top: 0px;
+            padding-right: 0px;
+            padding-bottom: 0px;
+            padding-left: 0px;
+        }
+
+        .token-area {
+            margin-right: 5%;
+            margin-top: 3%;
+            margin-bottom: 3%;
+        }
+
+        .currency-area {
+            padding-right: 0%;
+            padding-left: 0%;
+        }
+
+        .wallet-area {
+            padding: 3% 10% !important;
+        }
+
+        .the-key-area {
+            display: none
+        }
+
+        #the-key-text {
+            width: 100%
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    
+<div class="wallet-area" style="padding: 3% 10%; font-size: 12px;">
+    <div class="row">
+        <div class="card col-lg-12 col-md-12 col-sm-12 token-area">
+            <div class="card-body power-down-notifier">
+                <h6 const="user-info-area">Larynx Token Wallet</h6>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="row container">
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Larynx</h5>
+                        <p class="text-left">Liquid tokens that can be converted to Hive Power(HP) by powering up, or to other cryptocurrencies by trading on HIVE listed exchanges</p>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right currency-area">
+                        <div class="dropdown">    
+                            <h6 class="text-right dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;">{{ larynxBalance }} LARYNX</h6>
+                            <div class="dropdown-menu float-right" aria-labelledby="dropdownMenuButton" style="margin-left: 40%;">
+                              <a class="dropdown-item" href="#"  data-toggle="modal" data-target="#trfLarxModal">Transfer</a>
+                              <a class="dropdown-item" href="#"  data-toggle="modal" data-target="#trfLarxToGovModal">Lock For Governance</a>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Larynx(Locked)</h5>
+                        <p class="text-left">Staked LARYNX tokens, locked for governance of the SPK network</p>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right currency-area">
+                        <div class="dropdown">    
+                            <h6 class="text-right dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;">{{ larynxLocked }} LARYNXG</h6>
+                            <div class="dropdown-menu float-right" aria-labelledby="dropdownMenuButton" style="margin-left: 40%;">
+                                <a class="dropdown-item" href="#"  data-toggle="modal" data-target="#trfLarxToGovModal">Unlock</a>
+                            </div>
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card col-lg-12 col-md-12 col-sm-12 wallet-info-area">
+            <div class="card-body power-down-notifier">
+                <h6 const="user-info-area">@<span class="username-text">{{ identity.username }}</span>'s Wallet</h6>
+            </div>
+            {% if walletData.pendingVestWithdrawStat == true %}
+                <div class="card-body power-down-notifier">
+                    <p>Your next power down is scheduled to happen in approximately {{ walletData.finalTimeInterval }}. About  {{ walletData.vestingWithdrawalHive }} HIVE</p>
+                </div>
+            {% endif %}
+            <div class="card-body row rewards-notifier">
+                <div class="col-8">
+                    <p><span class="reward-hive">{{ walletData.rewardHive }}</span>, <span class="reward-hbd">{{ walletData.rewardHBD }}</span>, <span class="reward-hp">{{ walletData.rewardVesting }}</span></p>
+                </div>
+                <div class="col-4">
+                    <center>
+                        <button type="button" class="btn btn-primary claim-rewards">Claim</button>
+                    </center>
+                </div>
+            </div>
+        </div>
+        <div class="card col-lg-12 col-md-12 col-sm-12 token-area">
+            <div class="card-body">
+                <div class="row container">
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Hive(Liquid)</h5>
+                        <p class="text-left">Liquid tokens that can be converted to Hive Power(HP) by powering up, or to other cryptocurrencies by trading on HIVE listed exchanges</p>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right currency-area">
+                        <div class="dropdown">    
+                            <h6 class="text-right dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;">{{ walletData.hiveBalance }} HIVE</h6>
+                            <div class="dropdown-menu float-right" aria-labelledby="dropdownMenuButton" style="margin-left: 40%;">
+                              <a class="dropdown-item" href="#"  data-toggle="modal" data-target="#trfHiveModal">Transfer</a>
+                              <a class="dropdown-item" href="#"  data-toggle="modal" data-target="#trfHiveToVestModal">Power Up</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="row container">
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Hive Power(HP)(Staked)</h5>
+                        <p class="text-left">Hive power is accumulated as rewards from curation and content creation. <br> Users with more Hive Power will earn more Hive, so endeavor to power up some Hive as much as you can to increase your potential rewards</p>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right currency-area">
+                        <div class="dropdown">    
+                            <h6 class="text-right dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;"><span class="user-hp">{{ walletData.hivePower }}</span> HP<br><i>({{ walletData.delegatedHivePower }} HP)</i></h6>
+                            <div class="dropdown-menu float-right" aria-labelledby="dropdownMenuButton" style="margin-left: 40%;">
+                              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#unStakeModal">Power Down</a>
+                              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#delegationModal">Delegate</a>
+                              {% if walletData.pendingVestWithdrawStat == true %}
+                              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#unStakeModal" id="cancel-unstake">Cancel Power Down</a>
+                              {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="row container">
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Hive Backed Dollars(HBD)</h5>
+                        <p class="text-left">Can be converted to liquid HIVE</p>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right">
+                        <div class="dropdown">    
+                            <h6 class="text-right dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;">{{ walletData.hbdBalance }} HBD</h6>
+                            <div class="dropdown-menu float-right" aria-labelledby="dropdownMenuButton" style="margin-left: 40%;">
+                              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#trfHBDModal">Transfer</a>
+                              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#trfHBDSavingsModal">Transfer To Savings</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="row container">
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Hive Savings</h5>
+                        <p class="text-left">Save your HIVE tokens</p>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right">
+                        <div class="dropdown">    
+                            <h6 class="text-right dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;">{{ walletData.hbdSavings }} HBD</h6>
+                            <div class="dropdown-menu float-right" aria-labelledby="dropdownMenuButton" style="margin-left: 40%;">
+                              <a class="dropdown-item" href="#" data-toggle="modal" data-target="#withdrawHBDSavingsModal">Withdraw</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="card-body">
+                <div class="row container">
+                    <div class="col-lg-8 col-md-8 col-sm-12 text-left">
+                        <h5 class="text-left">Estimated Account Value</h5>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 text-right">
+                        <h6 class="text-right">${{ walletData.estimatedAccountValue }}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Transfer Larynx Modal -->
+<div class="modal fade" id="trfLarxModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Transfer Larynx</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+            <div class="form-group">
+              <label for="fromLarynxTrf">From</label>
+              <input type="text" class="form-control" id="fromLarynxTrf" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+              <label for="toLarynxTrf">To</label>
+              <input type="text" class="form-control" id="toLarynxTrf">
+            </div>
+            <div class="form-group">
+                <label for="amountLarynxTrf">Amount</label>
+                <input type="text" class="form-control" id="amountLarynxTrf">
+            </div>
+            <div class="form-group">
+                <label for="memoLarynxTrf">Memo</label>
+                <input type="text" class="form-control" id="memoLarynxTrf" aria-describedby="memoLarynxTrfArea">
+                <small id="memoLarynxTrfArea" class="form-text text-muted">Optional</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary transfer-larx">Send</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Transfer Larynx To Governance Modal -->
+<div class="modal fade" id="trfLarxToGovModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Lock Larynx</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+            <div class="form-group">
+              <label for="larynxFrom">From</label>
+              <input type="text" class="form-control" id="larynxFrom" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+              <label for="larynxTo">To</label>
+              <input type="text" class="form-control" id="larynxTo" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="larynxAmount">Amount</label>
+                <input type="number" class="form-control" id="larynxAmount">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary lock-larynx">Lock</button>
+          <button type="button" class="btn btn-primary unlock-larynx">Unlock</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Transfer Hive Modal -->
+
+<div class="modal fade" id="trfHiveModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Transfer Hive</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+            <div class="form-group">
+              <label for="fromHiveTrf">From</label>
+              <input type="text" class="form-control" id="fromHiveTrf" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+              <label for="toHiveTrf">To</label>
+              <input type="text" class="form-control" id="toHiveTrf">
+            </div>
+            <div class="form-group">
+                <label for="amountHiveTrf">Amount</label>
+                <input type="text" class="form-control" id="amountHiveTrf">
+            </div>
+            <div class="form-group">
+                <label for="memoHiveTrf">Memo</label>
+                <input type="text" class="form-control" id="memoHiveTrf" aria-describedby="memoHiveTrfArea">
+                <small id="memoHiveTrfArea" class="form-text text-muted">Optional</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary transfer-hive">Send</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Transfer Hive To Vest Modal -->
+<div class="modal fade" id="trfHiveToVestModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Power Up</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+            <div class="form-group">
+              <label for="fromHiveToVestTrf">From</label>
+              <input type="text" class="form-control" id="fromHiveToVestTrf" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+              <label for="toHiveToVestTrf">To</label>
+              <input type="text" class="form-control" id="toHiveToVestTrf" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="amountHiveToVestTrf">Amount</label>
+                <input type="number" class="form-control" id="amountHiveToVestTrf">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary power-up">Send</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Transfer Hive To Vest Modal -->
+
+<!-- Power Down Hive Modal -->
+<div class="modal fade" id="unStakeModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Power Down</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+                <form>     
+                    <div class="form-group">
+                        <label for="fromHiveToPowerDown">Username</label>
+                        <input type="text" class="form-control" id="fromHiveToPowerDown" value="{{ identity.username }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="amountPowerDown">Amount</label>
+                        <input type="text" class="form-control" id="amountPowerDown" placeholder="Enter amount here">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary power-down-hive">Power Down</button>
+            </div>
+        </div>
+        </div>
+</div>
+<!-- Power Down Hive Modal -->
+
+<!-- Delegate HP Modal-->
+<div class="modal fade" id="delegationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Delegate Hive Power</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              <form>
+              <div class="form-group">
+                <label for="fromHPDelegate">From</label>
+                <input type="text" class="form-control" id="fromHPDelegate" value="{{ identity.username }}" disabled>
+              </div>
+              <div class="form-group">
+                <label for="toHPDelegate">To</label>
+                <input type="text" class="form-control" id="toHPDelegate">
+              </div>
+              <div class="form-group">
+                  <label for="amountHPDelegate">Amount</label>
+                  <input type="text" class="form-control" id="amountHPDelegate">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary delegate-hp">Delegate</button>
+          </div>
+        </div>
+      </div>
+</div>
+<!-- Delegate HP Modal-->
+
+
+<!-- Transfer HBD Modal -->
+<div class="modal fade" id="trfHBDModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Transfer HBD</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+            <div class="form-group">
+              <label for="fromHBDTrf">From</label>
+              <input type="text" class="form-control" id="fromHBDTrf" value="{{ identity.username }}" disabled>
+            </div>
+            <div class="form-group">
+              <label for="toHBDTrf">To</label>
+              <input type="text" class="form-control" id="toHBDTrf">
+            </div>
+            <div class="form-group">
+                <label for="amountHBDTrf">Amount</label>
+                <input type="text" class="form-control" id="amountHBDTrf">
+            </div>
+            <div class="form-group">
+                <label for="memoHBDTrf">Memo</label>
+                <input type="text" class="form-control" id="memoHBDTrf" aria-describedby="memoHBDTrfArea">
+                <small id="memoHBDTrfArea" class="form-text text-muted">Optional</small>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary transfer-hbd">Send</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Transfer HBD Modal -->
+
+
+
+<!-- Transfer HBD To Savings Modal -->
+<div class="modal fade" id="trfHBDSavingsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Transfer HBD To Savings</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+                <div class="form-group">
+                <label for="fromHBDSavingsTrf">From</label>
+                <input type="text" class="form-control" id="fromHBDSavingsTrf" value="{{ identity.username }}" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="amountHBDSavingsTrf">Amount</label>
+                    <input type="text" class="form-control" id="amountHBDSavingsTrf">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary transfer-hbd-savings">Send</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Transfer HBD To Savings Modal -->
+
+
+<!-- Withdraw HBD From Savings Modal -->
+<div class="modal fade" id="withdrawHBDSavingsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Withdraw HBD From Savings</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <form>
+                <div class="form-group">
+                <label for="fromHBDSavingsWithdraw">From</label>
+                <input type="text" class="form-control" id="fromHBDSavingsWithdraw" value="{{ identity.username }}" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="amountHBDSavingsWithdraw">Amount</label>
+                    <input type="text" class="form-control" id="amountHBDSavingsWithdraw">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary withdraw-hbd-savings">Send</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Withdraw HBD From Savings Modal -->
+
+
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        $('.transfer-hive').click(async () => {
+            const from = $('#fromHiveTrf').val();
+            const to = $('#toHiveTrf').val()
+            const amount = $('#amountHiveTrf').val()
+            const memo = $('#memoHiveTrf').val()
+
+            if (window.hive_keychain) {
+                
+                const makeTrf = await hive_keychain.requestTransfer(from, to, amount, memo, 'HIVE');
+            } else {
+                const transfer = await axios.post('/api/hivesigner_trf', {
+                    from,
+                    to,
+                    amount,
+                    memo
+                })
+
+                const loadUrl = transfer.data.send
+
+                await window.open(loadUrl);
+            }
+        })
+    </script>
+
+    <script>
+        $('.power-up').click(async () => {
+
+            const from = $('#fromHiveToVestTrf').val();
+            const to = $('#toHiveToVestTrf').val()
+            const amount = $('#amountHiveToVestTrf').val()
+
+            
+            if (window.hive_keychain) {
+                const operations = [
+                    ['transfer_to_vesting', {
+                        amount: `${parseFloat(amount).toFixed(3)} HIVE`,
+                        from: from,
+                        to: to
+                    }]
+                ];
+        
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(from, operations, 'Active')
+            } else {
+                const transfer = await axios.post('/api/hivesigner_stake', {
+                    from,
+                    to,
+                    amount
+                })
+
+                const loadUrl = transfer.data.send
+
+                await window.open(loadUrl);
+            }
+        })
+    </script>
+
+    <script>
+        $('.power-down-hive').click(async () => {
+            const amount = $('#amountPowerDown').val()
+            const username = $('#fromHiveToPowerDown').val()
+            const hivePower = $('.user-hp').text()
+
+            const getVest = await axios.post('/api/get_vests', {
+                amount,
+                username,
+                hivePower
+            })
+
+            const getPowerDownVest = getVest.data.powerDownVest
+            $('#amountPowerDown').removeAttr('readonly');
+
+            if (window.hive_keychain) {
+                const operations = [
+                    ['withdraw_vesting', {
+                        account: username,
+                        vesting_shares: getPowerDownVest.toFixed(6) + ' VESTS'
+                    }]
+                ];
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(username, operations, 'Active')
+            } else {
+                const transfer = await axios.post('/api/hivesigner_unstake', {
+                    username,
+                    vesting_shares:  parseFloat(getPowerDownVest.toFixed(6))
+                })
+
+                const loadUrl = transfer.data.send
+
+                await window.open(loadUrl);
+            }
+        })
+    </script>
+    <script>
+        $('#cancel-unstake').click(async () => {
+            $('#amountPowerDown').val('0.00')
+            $('#amountPowerDown').attr('readonly','readonly');
+        })
+    </script>
+    <script>
+        $('.delegate-hp').click(async () => {
+            const from = $('#fromHPDelegate').val();
+            const to = $('#toHPDelegate').val()
+            const amount = $('#amountHPDelegate').val()
+            const hivePower = $('.user-hp').text()
+
+            const getVest = await axios.post('/api/get_vests', {
+                amount,
+                username: from,
+                hivePower
+            })
+
+            const getDelegateVest = getVest.data.powerDownVest
+
+            if (window.hive_keychain) {
+                const operations = [
+                    ["delegate_vesting_shares",
+                    {
+                        "delegator": from,
+                        "delegatee": to,
+                        "vesting_shares": getDelegateVest.toFixed(6) + ' VESTS'
+                    }]
+                ];
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(from, operations, 'Active')
+            } else {
+                const transfer = await axios.post('/api/hivesigner_delegate', {
+                    from,
+                    to,
+                    vesting_shares:   getDelegateVest.toFixed(6) + ' VESTS'
+                })
+
+                const loadUrl = transfer.data.send
+
+                await window.open(loadUrl);
+            }
+        })
+    </script>
+
+    <script>
+        $('.transfer-hbd').click(async () => {
+            const from = $('#fromHBDTrf').val();
+            const to = $('#toHBDTrf').val()
+            const amount = $('#amountHBDTrf').val()
+            const memo = $('#memoHBDTrf').val()
+
+
+            const transfer = await axios.post('/api/hivesigner_trf_hbd', {
+                from,
+                to,
+                amount,
+                memo
+            })
+
+            const loadUrl = transfer.data.send
+
+            await window.open(loadUrl);
+        })
+    </script>
+
+    <script>
+        $('.transfer-hbd-savings').click(async () => {
+            const from = $('#fromHBDSavingsTrf').val();
+            const amount = $('#amountHBDSavingsTrf').val()
+
+
+            if (window.hive_keychain) {
+                
+                const operations = [
+                    ['transfer_to_savings', {
+                        "from": from,
+                        "to": from,
+                        "amount": parseFloat(amount).toFixed(3) + " HBD",
+                        "memo": ""
+                    }]
+                ];
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(from, operations, 'Active')
+            } else {
+                const transfer = await axios.post('/api/hivesigner_trf_savings', {
+                    from,
+                    to: from,
+                    amount: parseFloat(amount).toFixed(3)
+                })
+
+                const loadUrl = transfer.data.send
+
+                await window.open(loadUrl);
+            }
+        })
+    </script>
+
+    <script>
+        $('.withdraw-hbd-savings').click(async () => {
+            const from = $('#fromHBDSavingsWithdraw').val();
+            const amount = $('#amountHBDSavingsWithdraw').val()
+
+
+            if (window.hive_keychain) {
+                
+                const operations = [
+                    ["transfer_from_savings", {
+                        "from": from,
+                        "request_id": 101,
+                        "to": from,
+                        "amount": parseFloat(amount).toFixed(3) + " HBD",
+                        "memo": ""
+                    }]
+                ];
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(from, operations, 'Active')
+            } else {
+                const transfer = await axios.post('/api/hivesigner_savings_withdraw', {
+                    from,
+                    "request_id": 101,
+                    to: from,
+                    amount: parseFloat(amount).toFixed(3)
+                })
+
+                const loadUrl = transfer.data.send
+
+                await window.open(loadUrl);
+            }
+        })
+    </script>
+
+    <script>
+        $('.claim-rewards').click(async () => {
+            const username = $('.username-text').text()
+            const rewardHive = $('.reward-hive').text()
+            const rewardHBD = $('.reward-hbd').text()
+            const rewardHP = $('.reward-hp').text()
+            const hivePower = $('.user-hp').text()
+            const getVest = await axios.post('/api/get_vests', {
+                amount: rewardHP,
+                username,
+                hivePower
+            })
+            const rewardVests = getVest.data.powerDownVest
+
+
+
+            if (window.hive_keychain) {
+                
+                const operations = [
+                    [
+                        "claim_reward_balance",
+                        {
+                            "account": username,
+                            "reward_hive": rewardHive,
+                            "reward_hbd": rewardHBD,
+                            "reward_vests":parseFloat(rewardVests.toFixed(6)) + ' VESTS'
+                        }
+                    ]
+                ];
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(username, operations, 'Active')
+            } else {
+                alert('You need to install Hive keychain to claim from 3speak')
+            }
+        })
+    </script>
+
+    <script>
+        $('.lock-larynx').click(async () => {
+            if ('{{runnerStatus}}' === 'true') {
+                const from = $('#larynxFrom').val();
+                const to = $('#larynxTo').val()
+                const amount = $('#larynxAmount').val() * 1000
+
+                console.log(from, to, amount)
+                if (window.hive_keychain) {
+                    const operations = [
+                        [
+                            "custom_json",
+                            {
+                            "required_auths": [
+                                from
+                            ],
+                            "id": "spkcc_gov_up",
+                            "required_posting_auths": 0,
+                            "json": JSON.stringify({amount})
+                            }
+                        ]
+                    ];
+            
+                        
+                    
+                    const makeTrf = await hive_keychain.requestBroadcast(from, operations, 'Active')
+                } else {
+                    return toastr['error']('You need to have Hive keychain installed')
+                }
+            } else {
+                return toastr['error']('You need to run a Larynx miner node to lock tokens')
+            }
+        })
+    </script>
+
+        <script>
+        $('.unlock-larynx').click(async () => {
+
+            const from = $('#larynxFrom').val();
+            const to = $('#larynxTo').val()
+            const amount = $('#larynxAmount').val() * 1000
+
+            console.log(from, to, amount)
+            if (window.hive_keychain) {
+                const operations = [
+                    [
+                        "custom_json",
+                        {
+                        "required_auths": [
+                            from
+                        ],
+                        "id": "spkcc_gov_down",
+                        "required_posting_auths": 0,
+                        "json": JSON.stringify({amount})
+                        }
+                    ]
+                ];
+        
+                    
+                
+                const makeTrf = await hive_keychain.requestBroadcast(from, operations, 'Active')
+            } else {
+                return toastr['error']('You need to have Hive keychain installed')
+            }
+        })
+    </script>
+
+    
+
+    <script>
+        $('.transfer-larx').click(async () => {
+            const from = $('#fromLarynxTrf').val();
+            const to = $('#toLarynxTrf').val()
+            const amount = $('#amountLarynxTrf').val() * 1000
+            const memo = $('#memoLarynxTrf').val()
+
+            const operation =  [
+                "custom_json",
+                {
+                    "required_auths": [
+                        from
+                    ],
+                    "id": "spkcc_send",
+                    "required_posting_auths": 0,
+                    "json": JSON.stringify({to: to, amount: amount, memo: memo, from: from})
+                }
+            ]
+
+            if (window.hive_keychain) {
+                
+                const makeTrf = await hive_keychain.requestBroadcast(from, [operation], 'active')
+            } else {
+                return toastr['error']('You need to have Hive keychain installed')
+            }
+        })
+    </script>
+{% endblock %}

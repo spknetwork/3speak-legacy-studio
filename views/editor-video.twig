@@ -1,0 +1,73 @@
+{% extends 'layout.twig' %}
+
+{% block css %}
+    <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
+    <link href="https://vjs.zencdn.net/7.4.1/video-js.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Edit Video</h1>
+        </div>
+
+        <div class="row mt-3 mb-5">
+            <div class="col-xl-6 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/editor-video/{{ video.permlink }}" method="post">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input name="title" type="text" required minlength="5" maxlength="250" value="{{ video.title }}" id="title"  class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea name="description" minlength="1" maxlength="10000"  type="text" id="description" class="form-control">{{ video.description }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">Tags</label>
+                            <input name="tags" required value="{{ video.tags }}"  type="text" id="tags" class="form-control">
+                            <small class="text-muted">Separate multiple tags with a <kbd>,</kbd> </small>
+                        </div>
+{#                        <div class="form-group">#}
+{#                            <label for="thumbnail">Thumbnail</label>#}
+{#                            <div>#}
+{#                                <img src="/img/default-thumbnail.jpg" style="max-width: 200px;cursor: pointer;" alt="" id="thumbnail">#}
+{#                            </div>#}
+{#                            <small>Click the thumbnail to change it</small>#}
+{#                            <input accept="image/*" type="file" id="thumbnail_input" class="d-none">#}
+
+{#                        </div>#}
+                        <div class="form-group float-right">
+                            <input type="submit" id="save" value="Save" class="btn btn-primary" >
+                            <a href="/my-videos" class="btn btn-dark" >Go back</a>
+                        </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="title">Preview</label>
+                            <div>
+                                <iframe width="560" height="315" src="https://{{ APP_PAGE_DOMAIN }}/embed?v={{video.owner}}/{{video.permlink}}" frameborder="0"  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+
+{% block js %}
+
+{% endblock %}

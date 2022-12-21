@@ -1,0 +1,753 @@
+{% extends 'layout.twig' %}
+
+{% block css %}
+    <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
+    <link href="https://vjs.zencdn.net/7.4.1/video-js.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="/min/dropzone.min.css">
+    <link rel="stylesheet" href="/css/jquery.datetimepicker.min.css">
+    <link rel="stylesheet" href="https://lab.lepture.com/editor/editor.css" />
+{% endblock %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Upload Video</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-12">
+
+                {% if contentCreator.postWarning == true %}
+                    <p class="alert alert-danger">
+                        <b>Warning:</b> You were found out to upload your videos to more than one video site that posts
+                        them to Steem. Users reported you for spam. Please chose one platform to upload. If you continue
+                        to upload to more than one platform you will very likely soon be blacklisted by Steemcleaners
+                        and start receiving large downvotes on your videos. If you are on their blacklist you can no
+                        longer use 3Speak.
+                    </p>
+                {% endif %}
+
+                {% if alreadyHasVidInBatch == true %}
+                    <p class="alert alert-info">
+                        <b>Just so you know:</b> You have uploaded more than one video out of the last 64 videos.
+                        This means that some of your videos may not appear in the following pages: /new /trending and /
+                        <br>This is to help avoid spam. Thank you for your understanding.
+                    </p>
+                {% endif %}
+
+                {#                {% if showWarningEncodingTime == true %}#}
+                {#                    <p class="alert alert-danger">#}
+                {#                        <b>Warning:</b> You only have {{ left }} minutes of encoding time left. If your video is longer it will not be processed until you purchase more encoding time.#}
+                {#                    </p>#}
+                {#                {% endif %}#}
+                <p class="alert alert-info">
+                    Would you like to know how to earn more hive upvotes on your 3speak videos <br> <a href="https://3speak.tv/watch?v=eddiespino/nxfnqpul" target="_blank" rel="noopener noreferrer">Click here</a>
+                </p>
+                <div class="d-table-cell align-middle card"
+                     style="width: 4000px;text-align: center;height: 150px;font-size: 16px; font-weight: bold;"
+                     id="pickVideo">
+                    Drop a file or click to start the upload <br>
+                    <small>Max. Filesize is 5GB</small>
+                    <strong>
+                    Note: Your video will not be encoded if it is above the size limit!
+                    </strong>
+                </div>
+                <div class="progress mt-3 d-none text-center" id="pg_out">
+                    <div class="progress-bar text-dark" id="pg_in" role="progressbar" data-progress="0"
+                         style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="row mt-3 mb-5">
+            <div class="col-xl-6 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <div class="custom-control custom-switch">
+                                <input maxlength="200" type="checkbox" class="custom-control-input" id="autofillTitleSwitch" {% if contentCreator.autoFillTitle == true %}checked{% endif %}>
+                                <label class="custom-control-label" for="autofillTitleSwitch">Autofill title</label>
+                            </div>
+                            {#<div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="add-to-blog">
+                                <label class="custom-control-label" for="add-to-blog">
+                                    Add post to your hive blog section.
+                                </label>
+                            </div>#}
+                            <input type="text" id="title" maxlength="100" disabled class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea disabled type="text" id="description" class="form-control" maxlength="20000"></textarea>
+                            <small class="text-muted">Maximum description length of 20k characters</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">Tags</label>
+                            <input disabled type="text" id="tags" class="form-control">
+                            <small class="text-muted">Separate multiple tags with a <kbd>,</kbd> </small>
+                        </div>
+                        <div class="form-group d-none">
+                            <label for="category">Category</label>
+                            <select disabled id="category" class="form-control mb-4">
+                                {% for category in categories %}
+                                    <option {% if category.code == "general" %}selected{% endif %}
+                                            value="{{ category.code }}">{{ category.display }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="language">Language</label>
+                            <select disabled id="language" class="form-control mb-4">
+                                {% for language in languages %}
+                                    <option {% if language.code == "en" %}selected{% endif %}
+                                            value="{{ language.code }}">{{ language.language }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group {% if  contentCreator.username == 'guest-account' %}d-none{% endif %}">
+                            <label for="community">Community</label>
+                            <input type="text" placeholder="Please chose a community that best fits your content."
+                                   disabled id="community" class="form-control mb-4">
+                            <small>Please chose a community that best fits your content. </small>
+                        </div>
+                        <div class="form-group {% if  contentCreator.username == 'guest-account' %}d-none{% endif %}">
+                            <label for="payoutOption">Payout Options</label>
+                            <select id="payoutOption" class="form-control" disabled>
+                                <option selected value="50/50">Standard (50% liquid, 50% staked)</option>
+                                <option value="powerup">100% powerup (100% staked)</option>
+                                <option value="decline" data-tooltip="tooltip" title="Use this if you reupload content that you already uploaded somewhere else or if the content does not belong to you but is being shared under fair use. You can not change this setting after your video is uploaded.">Decline rewards</option>
+                            </select>
+                        </div>
+                        <div class="form-group {% if  contentCreator.username == 'guest-account' %}d-none{% endif %} ">
+                            <label for="beneficiaryOptions">Beneficiaries <i class="fa fa-question-circle" aria-hidden="true" data-tooltip="tooltip" title="If you want to share rewards with someone, enter their hive username and what percent of your rewards you want them to receive."></i></label>
+                            <table id="beneficiaryOptions" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <td>Username</td>
+                                        <td>Reward</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="beneficiaryBody">
+                                    <tr>
+                                        <td style="width: 70%;"><input id="beneficiaryUser" disabled type="text" class="form-control" style="width: 100%; display: inline-block;"></td>
+                                        <td><input id="beneficiaryPercent" disabled type="number" class="form-control" value="1" min="0" max="100" step="1"></td>
+                                        <td><i class="fa fa-plus text-success submit-beneficiary" style="cursor: pointer;"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if contentCreator.isCitizenJournalist %}
+                            <div class="form-check mt-3">
+                                <input type="checkbox" class="form-check-input" id="3CJContent">
+                                <label class="form-check-label" for="3CJContent">Content is citizen journalism</label>
+                            </div>
+                        {% endif %}
+                        <span class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="nsfwContent">
+                            <label class="form-check-label" for="nsfwContent">
+                                Content is graphic and/or NSFW
+                                <span class="text-danger">
+                                    Warning: you should check this option if your content is
+                                    <a href="https://en.wikipedia.org/wiki/Not_safe_for_work">
+                                        NSFW
+                                    </a>.
+                                </span>
+                            </label>
+                        </span>
+
+                        <span class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="donations">
+                            <label class="form-check-label" for="donations">
+                                Would you like to receive crypto donations on this video? Update your donation settings <a href="/donations">here</a>.
+                            </label>
+                        </span>
+
+
+                        <div class="form-group">
+                            <label for="thumbnail">Thumbnail</label>
+                            <div>
+                                <img src="/img/default-thumbnail.jpg" style="max-width: 200px;cursor: pointer;" alt=""
+                                     id="thumbnail">
+                            </div>
+                            <small>Click the thumbnail to change it</small>
+                            <input accept="image/*" type="file" id="thumbnail_input" class="d-none">
+                            {#<small>Maximum 1MB. Ideally 1280px×720px.</small>#}
+                        </div>
+
+                        <fieldset {% if  contentCreator.username == 'guest-account' %}class="d-none"{% endif %}>
+                            <legend>Publishing Settings</legend>
+
+                            <span class="form-check mb-3">
+                            <input type="radio" checked="checked" name="publish" value="publish"
+                                   class="form-check-input"> Publish Video after Encoding
+                        </span>
+                            <span class="form-check mb-3">
+                            <input type="radio" name="publish" value="schedule" class="form-check-input"> Schedule Video for a later date
+                        </span>
+
+                            <span class="form-check mb-3 d-none" id="scheduleTimepickerContainer">
+                            <input type="datetime-local" class="form-control-" id="scheduleTimepicker">
+                        </span>
+
+                        </fieldset>
+
+
+                        <div class="form-group">
+                            <input type="button" id="save" role="button" value="Save" class="btn btn-block btn-primary"
+                                   disabled>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="title">Preview (make sure you uploaded the right video!)</label>
+                            <div>
+                                <p class="alert alert-info" id="previewVideoInfo">
+                                    Select a video file to upload first.
+                                </p>
+                                <video controls="controls" data-setup='{"fluid": true}'
+                                       class="w-100 video-js d-none vjs-big-play-centered" id="previewVideo"></video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+    {% if contentCreator.isCitizenJournalist == false %}
+        <div class="modal fade" id="promotionModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Please agree before uploading to this community...</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>To upload to this community, we kindly ask that you firstly read and agree to the journalists
+                            pledge, this is to ensure that you are aware of our expectation that your content will
+                            follow
+                            decent journalistic integrity.
+
+                            To confirm your interest in becoming a citizen journalist, please agree to the terms below:
+
+                            <a href="https://drive.google.com/file/d/1Vkpd5THGHLehbqJBkNJxN4XTYcq8fBe0/">T&C's +
+                                journalists pledge.</a></p>
+
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" name="3CJ" value="jp">
+                                3Speak citizen journalist's pledge
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" name="3CJ" value="jc">
+                                Journalist's creed
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" name="3CJ" value="cjtc">
+                                Citizen Journalist's Terms and Conditions
+                            </label>
+                        </div>
+                        <p class="unfinishedFormWarning text-danger d-none">
+                            Please either check all boxes before proceeding or reject the terms.
+                        </p>
+                        <span class="form-group mt-4">
+                            <input type="submit" class="btn btn-success" value="Agree" onclick="journalistAgree(1)">
+                        </span>
+                        <span class="form-group mt-4">
+                            <input type="submit" class="btn btn-danger" value="Reject" onclick="journalistAgree(0)">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="modal fade" id="threeshortsModal" tabindex="-1" role="dialog" aria-labelledby="threeshortsModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Threeshorts Community</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Please be aware that this community is only for short-form video content. Please keep videos in
+                        this
+                        community to less than a minute in length.</p>
+                    <hr>
+                    <span class="form-group mt-4">
+                        <input type="submit" class="btn btn-success" value="Agree" data-dismiss="modal">
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@1.0.13/dist/browser-image-compression.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Le5G3MaAAAAAKXzr4reX2i2Bss8abc6CrrlEo-Z"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    {#    <script src="/js/dropzone.js"></script>#}
+    <script src="/min/dropzone.min.js"></script>
+    <script src="/js/progress.js"></script>
+    <script src="/js/upload.js"></script>
+    <script src="/js/bootstrap-tagsinput.min.js"></script>
+    <script src="/js/jquery.datetimepicker.full.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+    <script>
+        hive.api.setOptions({useAppbaseApi: true, url: '{{ HIVE_SECURE_NODE_PREFIX }}://{{ HIVE_DEFAULT_NODE }}'});
+    </script>
+    <script type="text/javascript" src="https://lab.lepture.com/editor/editor.js"></script>
+    <script type="text/javascript" src="https://lab.lepture.com/editor/marked.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tus-js-client@latest/dist/tus.min.js"></script>
+
+    <script>
+        let allHiveCommunities = [{{ hiveCommunities }}];
+    </script>
+    <script>
+        let uploadProgress = new PGB("pg_out", "pg_in", false);
+
+        let beneficiaries = [];
+        let accountBeneficiaries = [];
+        let reservedWeight = 1100;
+        window.uploaded = false;
+        window.details = false;
+        window.video = null;
+
+        const editor = new Editor({
+            element: document.getElementById("description")
+        });
+
+        editor.render();
+
+        $(() => {
+
+            hiveClient.database.call('get_accounts', [["{{ contentCreator.username }}"]]).then(r => {
+                try {
+                    let metadata = JSON.parse(r[0].json_metadata)
+                    accountBeneficiaries = metadata.beneficiaries
+                    if (accountBeneficiaries) {
+                        for (let i of accountBeneficiaries) {
+                            if (i.name !== 'spk.beneficiary') {
+                                reservedWeight += i.weight;
+                            }
+                        }
+                    }
+                } catch {
+
+                }
+            });
+
+            $('#scheduleTimepicker').datetimepicker({inline: true, step: 15})
+
+            $('[name="publish"]').change(() => {
+                let val = $('[name="publish"]:checked').val();
+                if (val === 'publish') {
+                    $('#scheduleTimepickerContainer').addClass("d-none")
+                } else {
+                    $('#scheduleTimepickerContainer').removeClass("d-none")
+                }
+            })
+
+            $('#thumbnail').click(() => {
+                $('#thumbnail_input').click();
+            });
+            $('#thumbnail_input').on("change", ((e) => {
+                var options = {
+                    maxSizeMB: 0.01,
+                    useWebWorker: true
+                }
+                imageCompression(e.target.files[0], options).then(compressedFile => {
+                    $('#thumbnail').attr("src", URL.createObjectURL(compressedFile))
+                    console.log($('#thumbnail').attr('src'))
+                })
+
+
+            }));
+            $('#community').on('change', function (e) {
+                {% if contentCreator.isCitizenJournalist == false %}
+                if ($(this).val() === 'hive-153014 || Citizen Journalists') {
+                    $('#community').val('none');
+                    $('#promotionModal').modal();
+                }
+                {% endif %}
+                if ($(this).val() === 'hive-112355 || Threeshorts') {
+                    $('#threeshortsModal').modal();
+                }
+            });
+            $('.submit-beneficiary').click(function () {
+                let user = $('#beneficiaryUser').val();
+                let percent = $('#beneficiaryPercent').val();
+                let weight = parseInt(percent)*100;
+                let error = null;
+                if (3 > user.length || user.length > 16) {
+                    error = 'Username is invalid length'
+                }
+                if (!/^[a-z0-9.-]+$/.test(user)) {
+                    error = 'Username contains invalid characters'
+                }
+
+                if ("{{ contentCreator.username }}" === user) {
+                    error = 'You cannot set yourself as a beneficiary'
+                }
+                let total = reservedWeight + weight;
+                beneficiaries.forEach((t, e) => {
+                    total += t.weight;
+                    if (t.account === user) {
+                        error = 'User already on beneficiary list'
+                    }
+                });
+                if (total > 10000) {
+                    error = 'You cannot share more than 100% of your rewards, please bear in mind that @threespeak ' +
+                        'takes 11% in addition to hive onboarding beneficiaries and chosen beneficiaries.'
+                }
+
+                if (error) {
+                    return toastr['error'](error)
+                }
+
+                hive.api.getAccounts([user], function (err, res) {
+                    if (res.length === 0) {
+                        return toastr['error']('Account does not exist')
+                    } else {
+                        $('#beneficiaryBody').prepend('\
+                        <tr>\
+                            <td>@'+user+'</td>\
+                            <td>'+percent+'%</td>\
+                            <td><i class="fa fa-trash text-danger beneficiary-remove" data-delbenif="'+user+'" style="cursor: pointer;"></i></td>\
+                        </tr>');
+                        beneficiaries.push({account: user, weight})
+                        $('#beneficiaryUser').val('');
+                    }
+                })
+            });
+            $(document).on('click', '.beneficiary-remove', function() {
+                let entry = $(this);
+                let user = entry.data('delbenif');
+                beneficiaries = $.grep(beneficiaries, function(e){
+                    return e.account != user;
+                });
+                entry.parent().parent().remove();
+            });
+
+            let communityNames = allHiveCommunities.map(x => x.name + ' || ' + x.title);
+            $("#community").autocomplete({
+                source: communityNames
+            });
+        });
+
+
+        function journalistAgree(decision) {
+            let checkboxes = $('input[name=3CJ]');
+
+            if (decision === 1) {
+                for (let i = 0; i < checkboxes.length; i++) {
+                    if (!checkboxes[i].checked) {
+                        $('.unfinishedFormWarning').removeClass('d-none');
+                        return;
+                    }
+                }
+
+                $.ajax({
+                    type: "post",
+                    url: "/journalist-upgrade",
+                    data: {agreed: decision},
+                    success: (res) => {
+                        if (res.error) {
+                            Swal.fire('Something went wrong', res.error, 'error')
+                        } else {
+                            $('#community').val('hive-153014 || Citizen Journalists');
+                            Swal.fire(
+                                'Yay!',
+                                "You've been upgraded to Citizen Journalist!\n Next time you upload citizen journalist type\
+                                content, you may use the Citizen Journalist's community.",
+                                'success'
+                            );
+                        }
+                    }
+                })
+            }
+            $('#promotionModal').modal('hide');
+
+        }
+
+        function saveDetails() {
+            if (video === null) {
+                toastr["error"]("Please start uploading a video before saving the details.")
+            } else {
+                let data = {
+                    id: video._id
+                };
+                if ($('#title').val().trim() === "") {
+                    return toastr["error"]("Your video needs a title")
+                }
+                data.title = $('#title').val().trim();
+                data.description = editor.codemirror.getValue().trim();
+                if (data.description === "") {
+                    return toastr["error"]("Your video needs a description")
+                }
+                if (data.description.length > 20000) {
+                    return toastr["error"]("Your description is above 20k character limit")    
+                }
+
+                data.language = $('#language').val();
+                data.category = 'general';
+
+                data.tags = $('#tags').val().trim().split(",");
+
+                data.publish_type = $('[name="publish"]:checked').val();
+                data.publish_data = Date.parse($('#scheduleTimepicker').datetimepicker('getValue').toUTCString()) / 1000
+
+                data.tags.forEach(function(part, index) {
+                    data.tags[index] = data.tags[index].toLowerCase();
+                });
+
+                data.communityID = $("#community").val().split(' || ')[0];
+                data.community = $("#community").val().split(' || ')[1];
+
+                let boolCom = Boolean(data.communityID);
+                let boolHive = Boolean(data.community);
+
+                if (
+                    (
+                        (boolCom && !boolHive) || (!boolCom && boolHive)
+                    ) ||
+                    (
+                        boolHive &&
+                        boolCom &&
+                        !allHiveCommunities.some(e => e.name === data.communityID && e.title === data.community)
+                    )
+                ) {
+                    return toastr["error"]("Invalid community. Please select one from dropdown")
+                }
+
+                if (!data.tags.includes(data.category) && !(["general", "other"].indexOf(data.category) > -1)) {
+                    data.tags.unshift(data.category);
+                }
+
+                data.is3CJContent = $('#3CJContent').is(':checked');
+                data.isNsfwContent = $('#nsfwContent').is(':checked');
+                data.donations = $('#donations').is(':checked');
+                data.postToHiveBlog = $('#add-to-blog').is(':checked');
+                let payoutOption = $('#payoutOption').val();
+                data.declineRewards = payoutOption === 'decline';
+                data.rewardPowerup = payoutOption === 'powerup';
+
+                if ($('#thumbnail_input').prop("files").length !== 1) {
+                    return toastr["error"]("Please add a thumbnail for your video.")
+                }
+                console.log($('#thumbnail_input').prop("files")[0])
+                data.thumbnail = $('#thumbnail_input').prop("files")[0];
+
+                data.beneficiaries = JSON.stringify(beneficiaries);
+
+                let formData = new FormData();
+
+                for (var key in data) {
+                    formData.append(key, data[key]);
+                }
+                $.ajax({
+                    url: '/api/video/edit',
+                    type: 'POST',
+                    data: formData,
+                    beforeSend: () => {
+                        $('#save').text("Saving...")
+                    },
+                    success: function (data) {
+                        if (data.status === "Ok") {
+                            details = true;
+                            $('#save').text("Save");
+                            redirectIfDone();
+                            return toastr["success"]("Saved!")
+                        } else {
+                            return toastr["error"](data.status)
+                        }
+                    },
+                    error: (e) => {
+                        console.log(e)
+                        $('#save').text("Save");
+                        return toastr["error"]("The details could not be saved!")
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            }
+        }
+
+        function redirectIfDone() {
+            if (details === true && uploaded === true) {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/video/queue",
+                    data: {
+                        id: video._id
+                    },
+                    success: (data) => {
+                        if(data.status === "FAIL") {
+                            return;
+                        }
+                        window.location.href = "/my-videos?showinfo=true"
+                    }
+                });
+            }
+        }
+
+        $('#autofillTitleSwitch').on('change', function() {
+            console.log($(this).is(':checked'));
+            $.ajax({
+                type: 'POST',
+                url: '/settings/toggleTitleAutofill',
+                data: {autofill: $(this).is(':checked')}
+            })
+        })
+
+        $('#title').on('keyup', function(e) {
+            if (e.which < 0x20) {
+                // e.which < 0x20, then it's not a printable character
+                // e.which === 0 - Not a character
+                return;     // Do nothing
+            }
+            if (this.value.length == max) {
+                e.preventDefault();
+            } else if (this.value.length > max) {
+                // Maximum exceeded
+                this.value = this.value.substring(0, max);
+            }
+        })
+
+        $('#save').click(saveDetails);
+
+        uploadProgress.onInnerChange((me) => {
+            me.setLabel(me.getLabel(), false, true);
+            me.setLabelColor();
+        });
+
+
+        let videoUploader = new Dropzone("#pickVideo", {
+                url: () => {
+                },
+                method: 'post',
+                clickable: true,
+                acceptedFiles: 'video/*',
+                autoProcessQueue: false,
+                previewsContainer: false,
+                uploadMultiple: true,
+                maxFilesize: 5 * 1024,
+                maxFiles: 1
+            },
+        );
+
+        videoUploader.on('addedfile', (file) => {
+
+            if (file.type.startsWith("video/")) {
+                $('#pickVideo').remove()
+                var filename = file.name;
+                var fileUrl = URL.createObjectURL(file);
+                var fileType = file.type;
+
+                if ($('#title').val() === "" && $('#autofillTitleSwitch').is(':checked')) {
+                    $('#title').val(filename.replace(/\.[^/.]+$/, ""))
+                }
+
+                let previewPlayer = jwplayer('previewVideo').setup({
+                    playlist: [{
+                        title: filename,
+                        sources: [
+                            {
+                                file: fileUrl,
+                                type: fileType
+                            }
+                        ]
+                    }],
+                    autostart: false,
+                    advertising: {},
+                    playbackRateControls: [0.75, 1, 1.25, 1.5, 1.75, 2],
+                    abouttext: "Powered by 3Speak",
+                    aboutlink: "https://{{ APP_PAGE_DOMAIN }}/?utm_source=player_context",
+                    cast: {},
+                    floating: {
+                        dismissible: true
+                    },
+                    logo: {
+                        "file": "https://s3.eu-central-1.wasabisys.com/data.int/logo_player.png",
+                        "link": "https://{{ APP_PAGE_DOMAIN }}/?utm_souce=player_brand",
+                        "hide": "true",
+                        "position": "top-left"
+                    },
+                });
+
+                async function getDuration() {
+                    const duration = previewPlayer.getDuration();
+                    await new Promise(r => setTimeout(r, 500));
+                    return duration === 0 ? getDuration() : duration
+                }
+
+                previewPlayer.once('viewable', async () => {
+                    window.player = previewPlayer
+
+                    const duration = await getDuration()
+
+                    {% if ENV != "dev" %}
+                    grecaptcha.execute('6Le5G3MaAAAAAKXzr4reX2i2Bss8abc6CrrlEo-Z', {action: 'upload'}).then(token => {
+                        {% endif %}
+                        $.ajax({
+                            url: '/api/upload/prepare',
+                            type: "POST",
+                            data: {
+                                oFilename: filename,
+                                duration,
+                                size: file.size,
+                                {% if ENV != "dev" %}token{% endif %}
+                            },
+                            success: (data) => {
+                                if (data.status === "ok") {
+                                    window.video = data.video;
+                                    window.upload_type = data.upload_type;
+                                    if(data.upload_type === "ipfs") {
+                                        console.log(file)
+                                        uploadFileIpfs(file, data.signed_url, data.video)
+                                    } else if(data.upload_type === "ipfs_resumable") {
+                                        uploadIpfsResumable(file, data.signed_url, data.video)
+                                    } else {
+                                        uploadFile(file, data.signed_url)
+                                    }
+                                } else {
+                                    uploadProgress.setLabel("Something went wrong.")
+                                    uploadProgress.setStatus("danger")
+                                    uploadProgress.show();
+                                }
+                            }
+                        })
+                        {% if ENV != "dev" %}
+                    });
+                    {% endif %}
+
+
+                })
+                $('#previewVideoInfo').addClass("d-none")
+            }
+
+
+        })
+
+    </script>
+
+{% endblock %}

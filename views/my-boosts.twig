@@ -1,0 +1,131 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">My Video Boosts</h1>
+        </div>
+
+        <div>
+            <p class="alert alert-info">
+                Video Boosts allow you to boost your videos trending score. The trending score is derived from several of your videos metrics and is used to determine the position of your video on the trending page. With a Video Boost you can increase your chance to get to the trending page. <br>
+
+                <br>
+                Here are some tips to get the most out of your Video Boosts: <br>
+                - Only use them on videos that have more than 10 views and at least 3 comments. <br>
+                - Make sure the video is not older than 3-4 days. <br>
+                - Video Boosts can not be used on NSFW videos. <br>
+                - <b>You can not boost videos older than 7 days! Videos older than 7 days are not shown on the trending page!</b> <br>
+                <br>
+                <b>If you are unsure how to use your video boost please write a ticket at <a href="//{{ SUPPORT_PORTAL }}">{{ SUPPORT_PORTAL }}</a></b>
+            </p>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Boost ID</th>
+                        <th>Strength</th>
+                        <th>Used</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                   <tbody>
+                   {% for boost in boosts %}
+                   <tr>
+                       <td>{{ boost.order_id }}</td>
+                       <td>{{ boost._id }}</td>
+                       <td>{{ boost.boost }}%</td>
+                       <td>{% if boost.permlink == '' or boost.permlink is not defined %}No{% else %}Yes{% endif %}</td>
+                       <td>
+                           {% if boost.permlink == '' or boost.permlink is not defined %}
+                           <button data-strength="{{ boost.boost }}" data-boost="{{ boost._id }}" class="btn btn-sm btn-primary">
+                               Activate Boost
+                           </button>
+                           {% else %}
+                               <a class="btn btn-success btn-sm" target="_blank" href="//{{ APP_PAGE_DOMAIN }}/watch?v={{ identity.username }}/{{ boost.permlink }}">
+                                   Watch boosted Video
+                               </a>
+                           {% endif %}
+                       </td>
+                   </tr>
+                   {% endfor %}
+                   </tbody>
+                </table>
+            </div>
+
+
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+
+    <div id="activate_boost_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Activate Boost</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label>Selected Boost</label>
+                        <input type="text" id="selected_boost" readonly class="form-control" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Video</label>
+                        <select name="" id="selected_video" class="form-control">
+                            {% for video in videos %}
+                                <option value="{{ video.permlink }}">{{ video.title|escape }}</option>
+                            {% endfor %}
+                        </select>
+                        <small>Chose a video that you want to boost. Each boost can only be used for one video and you can not change this later.</small>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="activate_boost" class="btn btn-primary">ACTIVATE BOOST</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script>
+        $(()=> {
+            $('[data-boost]').click(e => {
+                e = $(e.target);
+                $('#selected_boost').data('boost', e.data('boost')).val(e.data('boost') + " (" + e.data("strength") + "%)")
+                $('#activate_boost_modal').modal()
+            })
+
+            $('#activate_boost').click(()=>{
+                $.ajax({
+                    url: '/my-videos/boosts/activate',
+                    type: 'post',
+                    data: {
+                        boost: $('#selected_boost').data('boost'),
+                        permlink: $('#selected_video').val()
+                    },
+                    success: () => {
+                        window.location.reload();
+                    }
+                })
+            })
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends 'layout.twig' %}
+
+{% macro getBorderColour(status) %}
+    {% if status == 'uploaded' %}border-left-primary{% endif %}
+    {% if status == 'encoding' %}border-left-warning{% endif %}
+    {% if status == 'deleted' %}border-left-danger{% endif %}
+    {% if status == 'published' %}border-left-success{% endif %}
+{% endmacro %}
+{% macro getTextColour(status) %}
+    {% if status == 'uploaded' %}text-primary{% endif %}
+    {% if status == 'encoding' %}text-warning{% endif %}
+    {% if status == 'deleted' %}text-danger{% endif %}
+    {% if status == 'published' %}text-success{% endif %}
+{% endmacro %}
+{% macro getIcon(status) %}
+    {% if status == 'uploaded' %}fa-upload{% endif %}
+    {% if status == 'scheduled' %}fa-calendar{% endif %}
+    {% if status == 'encoding' %}fa-spin fa-cog{% endif %}
+    {% if status == 'encoding_failed' %}fa-times{% endif %}
+    {% if status == 'encoding_queued' %}fa-spin fa-spinner{% endif %}
+    {% if status == 'deleted' %}fa-trash{% endif %}
+    {% if status == 'published' %}fa-broadcast-tower{% endif %}
+{% endmacro %}
+{% macro getStatusText(status) %}
+    {% if status == 'uploaded' %}Uploaded{% endif %}
+    {% if status == 'scheduled' %}Scheduled{% endif %}
+    {% if status == 'encoding' %}Encoding - To Check the status of the encoding please reload the page{% endif %}
+    {% if status == 'saving' %}Finalizing{% endif %}
+    {% if status == 'deleted' %}Deleted{% endif %}
+    {% if status == 'published' %}Published{% endif %}
+    {% if status == 'encoding_ipfs' %} Encoding with ipfs encoder {% endif %}
+    {% if status == 'encoding_failed' %}Encoding Failed. If you want this video to be published please upload it again.{% endif %}
+    {% if status == 'encoding_queued' or status == 'encoding_queued_vod' %}Queued for encoding<br><b class="text-danger">Please do not attempt to re-upload unless the status reads "Encoding Failed"</b>{% endif %}
+    {% if status == 'encoding_halted_time' %}Encoding stopped because the creator has not Encoding Time credits left.
+        <br> Please purchase more Encoding Time to process this video.{% endif %}
+{% endmacro %}
+{% import _self as helper %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">My Videos</h1>
+        </div>
+
+
+        {% if maintenance == true %}
+        <p class="alert alert-danger">
+            <b>Info:</b> We are updating our systems. Encoding is stopped. For more information see the announcement channel in Discord.
+        </p>
+        {% endif %}
+
+        <p class="alert alert-warning">
+            <b>IMPORTANT:</b> Generally videos will take an hour to encode depending on system load.
+        </p>
+        <p class="alert alert-warning">
+            <b>IMPORTANT:</b> You must reload the page to get the updated status of your videos
+        </p>
+
+        <a href="/my-videos/boosts" class="btn btn-block mt-2 btn-primary">Manage Video Boosts</a>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Thumbnail</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Views</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    {% for video in videos %}
+                        <tr>
+                            <td class="align-middle">
+                                {% if video.status == 'published' or video.status == 'deleted' or video.status == 'scheduled' %}
+                                    {% if video.status == 'scheduled' %}
+                                        <img class="img-thumbnail" style="max-width: 130px"
+
+                                             src="{% if video.isNsfwContent %}https://{{ APP_PAGE_DOMAIN }}/img/nsfw.png{% else %}{{ video.thumbUrl }}{% endif %}"
+                                             alt="">
+                                        {% else %}
+                                    <a href="https://{{ APP_PAGE_DOMAIN }}/watch?v={{ video.owner }}/{{ video.permlink }}&utm_source=studio">
+                                        <img class="img-thumbnail" style="max-width: 130px"
+                                             src="{% if video.isNsfwContent %}https://{{ APP_PAGE_DOMAIN }}/img/nsfw.png{% else %}{{ video.thumbUrl }}{% endif %}"
+                                             alt="">
+                                    </a>
+                                            {% endif %}
+                                {% else %}
+
+                                    {% if video.status == 'encoding_queued_vod' %}
+                                        <img class="img-thumbnail" style="max-width: 130px"
+                                             src="{% if video.isNsfwContent %}https://{{ APP_PAGE_DOMAIN }}/img/nsfw.png{% else %}https://cdn-live.3speakcontent.online/thumbnails/{{ user }}.jpg{% endif %}"
+                                             alt="">
+                                    {% else %}
+                                        {% if video.isVOD == true %}
+                                            <img class="img-thumbnail" style="max-width: 130px"
+                                                 src="{% if video.isNsfwContent %}https://{{ APP_PAGE_DOMAIN }}/img/nsfw.png{% else %}https://cdn-live.3speakcontent.online/thumbnails/{{ user }}.jpg{% endif %}"
+                                                 alt="">
+                                        {% else %}
+
+                                            <img class="img-thumbnail" style="max-width: 130px"
+                                                 src="{% if video.isNsfwContent %}https://{{ APP_PAGE_DOMAIN }}/img/nsfw.png{% else %}{{ video.thumbUrl }}{% endif %}"
+                                                 alt="">
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">
+                                {% if video.title %}{{ video.title|substr(0,50)|escape }}{% else %}[NO TITLE]{% endif %}
+                            </td>
+                            <td class="align-middle">
+                                <i class="fas {{ helper.getIcon(video.status) }} fa-2x text-gray-300"></i> {{ video.visible_status }} {% if video.status == 'scheduled' %}for: <span id="iso-date-to-local" data-date="{{video.publishISO}}"></span>{% endif %}
+
+                                
+                            </td>
+                            <td class="align-middle">
+                                <span id="iso-date-to-local" data-date="{{video.createdISO}}"></span> 
+                            </td>
+                            <td class="align-middle" {% if video.status != 'published' and video.status != 'encoding_halted_time' and video.status != 'scheduled' %} colspan="2"{% endif %}>{{ video.views }}</td>
+                            {% if video.status == 'published' or video.status == 'encoding_halted_time' or video.status == 'scheduled' %}
+                                <td class="align-middle">
+                                    {#<div class="btn-group btn-group-sm">#}
+
+                                    {% if video.status == 'published' %}
+                                        <a href="/editor-video/{{ video.permlink }}" class="btn d-block btn-sm btn-primary">
+                                        <i class="fas fa-pencil-alt"></i> Edit
+                                        </a>
+
+                                        <a target="_blank"
+                                           href="//{{ APP_PAGE_DOMAIN }}/watch?v={{ video.owner }}/{{ video.permlink }}&utm_source=studio" {#editor-video/{{ video.permlink }}"#}
+                                           class="btn d-block mt-1 btn-sm btn-success">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    {% endif %}
+
+                                    {% if video.status == "published" or video.status == 'encoding_failed' or video.status == 'scheduled' %}
+                                        <a href="javascript:void(0)"
+                                           class="btn d-block mt-1 btn-sm btn-danger video-delete" data-permlink={{ video.permlink }}  data-toggle="modal" data-target="#deleteModal">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    {% endif %}
+
+                                    {% if video.status == "encoding_halted_time" %}
+                                        <a href="/pay/{{ video.permlink }}"
+                                           class="btn d-block mt-1 btn-sm btn-warning">
+                                            <i class="fas fa-dollar-sign"></i> Pay For Encoding
+                                        </a>
+                                    {% endif %}
+                                    {#</div>#}
+                                </td>
+                            {% endif %}
+                        </tr>
+                        {% if video.lowRc == true and video.status == 'published' %}
+                        <tr><td colspan="6" class="bg-danger font-weight-bold text-white">
+                                The video above couldn't be posted to HIVE yet. You do not have enough Ressource Credits. Power up more HIVE or wait. We will continue trying to publish your video to the blockchain.
+                            </td></tr>
+                        {% endif %}
+
+                    {% endfor %}
+                </table>
+            </div>
+
+        </div>
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-body">
+                  <p>Are you sure?</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="javascript:void(0)" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</a>
+                    <a href=""
+                    class="btn d-block mt-1 btn-sm btn-danger send-delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+{% block js %}
+    <script>
+        $(()=> {
+            {% if showInfo == true %}
+
+            toastr["success"]("Your video is now queued for encoding. This normally takes about 5-20 mins, if it’s much longer than that it may be that your internet connection failed. Please reload the page to check on encoding progress.", null, {timeOut : 0,extendedTimeOut :0})
+
+            setTimeout(() => {
+                location.search = ''
+            }, 15 * 1000)
+            {% endif %}
+        })
+    </script>
+    <script>
+        $(() => {
+            $('.video-delete').click(function () {
+                $('.send-delete').attr('href', `/video/${$(this).attr('data-permlink')}/delete`)
+            })
+        })
+
+        $(() => {
+            for(let element of $('#iso-date-to-local')) {
+                const date = new Date(element.getAttribute("data-date"))
+
+                element.innerHTML = `${date.toDateString()} ${date.toLocaleTimeString()}`
+            }
+
+        })
+    </script>
+{% endblock %}

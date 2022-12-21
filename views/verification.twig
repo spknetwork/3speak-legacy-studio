@@ -1,0 +1,104 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <div class="ml-5">
+        <select id="verification-type" class="mb-3">
+            <option selected value="link">Please provide a link to us with verification evidence</option>
+            {#<option value="message">We will send you a direct message with a verification link</option>#}
+        </select>
+        <br>
+        <div id="link-explanation-text">
+            <i>The link could be to any of the following:
+                <ul>
+                    <li>Popular social media site where you have history (preferably verified on there as well) and a <br>
+                        post/video/bio explaining your adoption of 3speak</li>
+                    <li>A 3speak video you have made, with you saying your username and explaining that you are uploading to<br>
+                        3speak. If your face and/or voice do not appear in your videos normally, you must make a video in your<br>
+                        usual craft and style that relates to 3speak in some way. (watermarks over a standard video will not be<br>
+                        accepted as proof).
+                    </li>
+                    <li>
+                        <b class="font-weight-bold text-danger">The page must include the text: "3Speak.Co Creator Verification: {{ user }}"</b>
+                    </li>
+                </ul></i>
+            <form action="javascript: submit()">
+                <input type="url" name="evidence" placeholder="Link to evidence...">
+                <input type="submit">
+            </form>
+        </div>
+        {#<div id="direct-message-text" class="d-none">
+            <form action="javascript: submitDirectMessage()">
+                <select id="social-choice">
+                    <option value="Twitter">Twitter</option>
+                </select>
+                <input id="other-social" class="d-none" placeholder="Social media site name"><br>
+                <input id="username" placeholder="Username"><br>
+                <input type="submit">
+            </form>
+        </div>#}
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        /*$('#verification-type').on('change', function() {
+            if ($(this).val() === 'link') {
+                $('#link-explanation-text').removeClass('d-none');
+                $('#direct-message-text').addClass('d-none');
+            } else {
+                $('#link-explanation-text').addClass('d-none');
+                $('#direct-message-text').removeClass('d-none');
+            }
+        });*/
+
+        /*$('#social-choice').on('change', function() {
+            if ($(this).val() === 'other') {
+                $('#other-social').removeClass('d-none')
+            } else {
+                $('#other-social').addClass('d-none')
+            }
+        });*/
+
+        function submit() {
+            $.ajax({
+                type: "post",
+                url: "/verification/success",
+                data: {evidence: $("[name='evidence']").val()},
+                success: (res) => {
+                    if (res.success) {
+                        Swal.fire("Yay", "We will now review your evidence manually, thank you for verifying your account with us.", "success").then(() => {
+                            window.location.href = "/dashboard"
+                        });
+                    } else {
+                        Swal.fire("error", "Please enter a valid URL", "error").then(() => {
+                            window.location.href = "/verification"
+                        });
+                    }
+                }
+            });
+        }
+
+        /*function submitDirectMessage() {
+            let platform = $('#social-choice').val();
+            if (platform === 'other') {
+                platform = $('#other-social').val();
+            }
+            let username = $('#username').val();
+
+            if (username === '' || platform === '') {
+                Swal.fire('Error', "Please don't leave any empty fields.", 'error')
+            } else {
+                $.ajax({
+                    type: 'post',
+                    url: '/verification/social-media',
+                    data: {platform, username},
+                    success: () => {
+                        Swal.fire('Woo!', 'You successfully requested an inbox, we will message your social media account shortly.', 'success').then(() => {
+                            window.location.href = '/dashboard';
+                        })
+                    }
+                });
+            }
+        }*/
+    </script>
+{% endblock %}

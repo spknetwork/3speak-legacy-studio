@@ -1,0 +1,134 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">My Connected HIVE Accounts</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+
+            <p class="alert alert-info">
+                Here you can manage your connected HIVE accounts.
+            </p>
+
+        </div>
+    </div>
+    <!-- Content Row -->
+    <div class="row">
+
+
+        {% if isAdmin %}
+
+            <div class="col-12 mb-2 ">
+                <div class="bg-dark text-white p-1">
+                    <b>You are logged in as an administrator. You can login as any user. Enter the username you want
+                        to login as in the field below and click the switch button.</b>
+
+
+                    <div class="form-group">
+                        <label for="">Account:</label>
+                        <input type="text" class="form-control form-control-sm" id="admin_switch">
+                    </div>
+
+                    <button id="admin_switch_btn" class="btn btn-sm btn-info">Switch</button>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+        <div class="col-12 mb-2 clearfix">
+            <a href="/addIdentity" class=" float-left btn btn-info">Connect My Existing HIVE Account</a>
+        </div>
+
+        <div class="col-12">
+            <table class="table table-striped">
+                <tr>
+                    <th>Account</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+                {% for ident in identities %}
+                    <tr>
+                        <td>{% if identity.username == ident.account %} <span title="Currently selected"
+                                                                              class="text-success fa fa-check-square"></span> {% endif %}{{ ident.account }}
+                        </td>
+                        <td data-identity="{{ ident.account }}">
+                            <i class="fa fa-spinner fa-spin"></i>
+                        </td>
+                        <td class="text-right">
+                            {% if identity.username == ident.account %}
+                            <button title="Already logged in as {{ ident.account }}" disabled
+                                    class="btn btn-sm btn-info">Switch</button>{% else %}<a
+                                href="/_refreshIdentity?identity={{ ident.account }}" class="btn btn-sm btn-info">
+                                    Switch</a>{% endif %}
+                            <a href="https://hivesigner.com/revoke/threespeak" class="d-none btn-sm btn btn-danger"
+                               data-revoke="{{ ident.account }}">Revoke Posting Authority</a>
+                            <a href="https://hivesigner.com/authorize/threespeak" class="d-none btn-sm btn btn-success"
+                               data-authorize="{{ ident.account }}">Grant Posting Authority</a>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+            <div class="alert alert-danger">
+                If you no longer wish to use 3Speak you can revoke the posting authority. That means you can no
+                longer:
+                <br>
+                <ul>
+                    <li>Upload Videos to 3Speak</li>
+                    <li>Write comments on 3Speak</li>
+                    <li>Vote on comments and videos on 3Speak</li>
+                    <li>Create communities</li>
+                </ul>
+                </p>
+            </div>
+
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+    {% endblock %}
+    {% block js %}
+
+        {% if isAdmin %}
+        <script>
+            $(() => {
+                $('#admin_switch_btn').click(() => {
+                    window.location.href = '/_refreshIdentity?identity=' + $('#admin_switch').val()
+                })
+            })
+        </script>
+        {% endif %}
+        <!--<script src="/js/steem.min.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+
+        <script>
+            steem.api.setOptions({useAppbaseApi: true, url: '{{ HIVE_SECURE_NODE_PREFIX }}://{{ HIVE_DEFAULT_NODE }}'})
+            $(async () => {
+
+                function hasPostingAuthority(account, authority) {
+                    return account.posting.account_auths.find(x => x[0] === authority) !== undefined
+                }
+
+                for (let identity of $('[data-identity]')) {
+                    identity = $(identity);
+                    let account_name = identity.data('identity');
+                    let [account] = await steem.api.getAccountsAsync([account_name])
+                    const hasAuth = hasPostingAuthority(account, 'threespeak')
+                    if (hasAuth) {
+                        $(`[data-revoke="${account_name}"]`).removeClass("d-none")
+                    } else {
+                        $(`[data-authorize="${account_name}"]`).removeClass("d-none")
+                    }
+                    identity.html(hasAuth ? '<i title="Threespeak has posting authority for this account. Posting authority is required so that 3Speak can publish your videos to the blockchain after they are encoded." class="text-success fa fa-check"></i>' : '<i title="WARNING: Threespeak has no posting authority for this account. This means threespeak can NOT publish your videos to the HIVE blockchain after they are encoded." class="text-danger fa fa-times">')
+                }
+            })
+        </script>
+    {% endblock %}

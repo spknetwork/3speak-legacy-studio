@@ -1,0 +1,33 @@
+{% extends 'layout.twig' %}
+
+
+{% block content %}
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+
+
+        <h1 class="h3 mb-0 text-gray-800">My View Statistics</h1>
+
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+{% block js %}
+<script src="https://www.chartjs.org/dist/2.8.0/Chart.min.js"></script>
+<script>
+const dataset = {{ config.config|json_encode }}
+    $(() => {
+        var ctx = document.getElementById('canvas').getContext('2d');
+        window.myLine = new Chart(ctx, {{ config.config|json_encode }});
+
+
+    })
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Waiting For Payment Confirmation</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+
+            <div class="col">
+
+                <p class="text-center">
+
+                    <img class="float-left" src="http://giphygifs.s3.amazonaws.com/media/tTyTbFF9uEbPW/giphy.gif" alt="">
+                
+                    <h1 class="text-danger">DO NOT CLOSE THIS TAB!</h1>
+                <h2 class="text-danger">
+                    For mobile users: Keep this tab open all the time. Closing your browser or switching to another tab can cause the payment verification to fail!
+                </h2>
+                </p>
+            </div>
+{#            <p class="alert alert-info">Please wait for the blockchain to confirm your payment. This can take up to 5 minutes. This page will reload every now and then.</p>#}
+            <img src="https://thumbs.gfycat.com/CharmingGreenCats-small.gif" alt="">
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+{% block js %}
+    <script>
+        $(() => {
+           setTimeout(() => {
+               window.location.reload();
+           }, 1000 * 60 * 10)
+        })
+    </script>
+{% endblock %}

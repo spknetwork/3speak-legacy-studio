@@ -1,0 +1,112 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Livestream Recordings</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+
+                <p class="alert alert-danger">
+                    Below you find a list of your past broadcasts. We might delete 48 hours after your stream has
+                    ended. You can download your VODs from here and upload them to your channel if you want.
+                </p>
+
+            </div>
+        </div>
+        <!-- Content Row -->
+        <div class="row">
+
+            <div class="col-12">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Recorded At</th>
+                        <th>Duration</th>
+                        <th>Filesize</th>
+                        <th>Preview</th>
+                        <th></th>
+                    </tr>
+                    {% for vod in vods %}
+                        <tr>
+                            <td>{{ (vod.creationDate / 1000)|date('jS F Y g:iA') }}</td>
+                            <td>{{ (vod.duration/1000)|hhmmss }}</td>
+                            <td>{{ vod.fileSize|filesize }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-preview="true" data-preview-user="{{ identity.username }}"
+                                        data-preview-file="{{ vod.vodName }}">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <a target="_blank" download="{{ vod.vodName }}" href="https://{{ APP_LIVE_DOMAIN }}/stream/{{ identity.username }}/vod/{{ vod.vodName }}" class="btn btn-sm btn-success">
+                                    Download This VOD
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="modal" id="previewPlayer" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">VOD Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="player"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+{% block js %}
+    <script src="https://cdn.jwplayer.com/libraries/j7Kz0Rae.js"></script>
+    <script>
+
+        let player;
+
+        function loadPlayer(user, file) {
+            player = jwplayer('player').setup({
+                file: 'https://{{ APP_LIVE_DOMAIN }}/stream/' + user + '/vod/' + file,
+                playbackRateControls: [0.75, 1, 1.25, 1.5, 1.75, 2],
+                autostart: true
+            })
+        }
+
+        $(() => {
+
+            $('#previewPlayer').on('hidden.bs.modal', function () {
+                try {
+                    player.remove();
+                } catch (e) {
+
+                }
+            });
+
+            $('[data-preview]').click(e => {
+                console.log(e.currentTarget)
+                e = $(e.currentTarget);
+                loadPlayer(e.data('preview-user'),e.data('preview-file'))
+                $('#previewPlayer').modal()
+            })
+
+        })
+    </script>
+{% endblock %}

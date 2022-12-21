@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" type="text/css" href="../public/css/sb-admin-2.css"/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>{{ APP_PAGE_DOMAIN}} - Video Manager</title>
+
+    <!-- Custom fonts for this template-->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.8.2/css/all.css"
+          integrity="sha384-xVVam1KS4+Qt2OrFa+VdRUoXygyKIuNWUUUBZYv+n27STsJ7oDOHJgfF0bNKLMJF" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+          rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="/css/sb-admin-2.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css"
+          integrity="sha256-aa0xaJgmK/X74WM224KMQeNQC2xYKwlAt08oZqjeF0E=" crossorigin="anonymous"/>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <link href="/css/offline.css" rel="stylesheet">
+    {% block css %}{% endblock %}
+
+</head>
+
+<body id="page-top">
+
+<div id="curtain" class="d-none">
+
+    <div class="row mt-0 mt-md-4 ">
+        <div class="col-12 text-center">
+            <div class="">
+                <h1 class="text-dark">Loading. Please Wait</h1>
+                <h1 class="text-dark">
+                    <i class="fa fa-spin fa-spinner"></i>
+                </h1>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- Page Wrapper -->
+<div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-threespeak sidebar sidebar-light accordion toggled" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex bg-white align-items-center justify-content-center" href="https://{{ APP_PAGE_DOMAIN }}">
+            <div class="sidebar-brand-icon mx-3">
+                <img src="/img/Register_logo_3s.png" style="max-width: 120px;" alt="">
+            </div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item active">
+            <a class="nav-link" href="/dashboard">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span></a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            My Videos
+        </div>
+
+        <li class="nav-item">
+            <a class="nav-link" href="/upload">
+                <i class="fas fa-fw fa-cloud-upload-alt"></i>
+                <span>Upload</span></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/my-videos">
+                <i class="fas fa-fw fa-video"></i>
+                <span>Videos</span></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/communities">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Communities</span></a>
+        </li>
+        {% if identity.username != 'guest-account' and identity.username != "null" %}
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/vods">
+                    <i class="fas fa-fw fa-archive"></i>
+                    <span>VOD Recordings</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/statistic/current">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Statistics</span>
+                </a>
+            </li>
+
+            {#<li class="nav-item">
+                <a class="nav-link" href="/guide-videos">
+                    <i class="fas fa-fw fa-play"></i>
+                    <span>3speak Guide Videos</span>
+                </a>
+            </li>#}
+
+            <li class="nav-item">
+                <a class="nav-link" href="/my-profile">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Profile Settings</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/podcast-profile">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Podcast Settings</span></a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/my-wallet">
+                    <i class="fas fa-fw fa-wallet"></i>
+                    <span>Wallet</span></a>
+            </li>
+        {% endif %}
+        <!-- Divider -->
+        {% if identity.username != "null" %}
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a class="nav-link" href="https://{{ APP_PAGE_DOMAIN }}/user/{{ identity.username }}">
+                    <i class="fal fa-external-link"></i>
+                    <span>My Channel</span></a>
+            </li>
+
+        {% endif %}
+
+
+        <!-- Nav Item - Charts -->
+        <li class="nav-item">
+            <a class="nav-link" href="/logout">
+                <i class="fal fa-sign-out"></i>
+                <span>Logout</span></a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider d-none d-md-block">
+
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+
+            <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+                <!-- Sidebar Toggle (Topbar) -->
+                <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fa fa-bars"></i>
+                </button>
+
+                <!-- Topbar Navbar -->
+                <ul class="navbar-nav ml-auto">
+
+                    <!-- Nav Item - User Information -->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="mr-2 d-none d-lg-inline text-gray-600 small"><b>Logged in as:</b>  {{ user }} {% if identity.username != "null" %}- <b>Selected HIVE account:</b> @{{ identity.username }}{% if identity.verified %} <i class="fas fa-check-circle text-success"></i>{% endif %}{% endif %}</span>
+                            <img class="img-profile rounded-circle" src="https://images.hive.blog/u/{{ identity.username }}/avatar/medium">
+                        </a>
+                        <!-- Dropdown - User Information -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                             aria-labelledby="userDropdown">
+
+                            <a class="dropdown-item" href="/identities">
+                            <i class="fas fa-user-edit fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Switch Account
+                            </a>
+                            <a class="dropdown-item" href="//{{ APP_SIGNUP_DOMAIN }}">
+                            <i class="far fa-shopping-basket fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Get HIVE Account
+                            </a>
+
+                            {% if identity.username != "null" %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="//{{ APP_PAGE_DOMAIN }}/user/{{ identity.username }}">
+                                <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                My Channel
+                            </a>
+                            <a class="dropdown-item" href="/donations">
+                                <i class="fas fa-coins fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Donation settings
+                            </a>
+                            {% endif %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </li>
+
+                </ul>
+
+            </nav>
+
+            {% block content %}{% endblock %}
+
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; 3Speak Media Limited {{ ""|date("Y") }}</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="/logout">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="communityCreateModal" tabindex="-1" role="dialog" aria-labelledby="communityCreateModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="communityCreateModalTitle">Community Creation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div id="communityCreateModalBody" class="modal-body">
+          <label for="communityTitle">Title (<span id="communityTitleChars">20</span> chars remaining):</label>
+          <input id="communityTitle" type="text" class="form-control mb-3">
+
+          <label for="communityAbout">About (<span id="communityAboutChars">120</span> chars remaining):</label>
+          <input id="communityAbout" type="text" class="form-control mb-3">
+
+          <label for="communityName">Owner account name:</label>
+          <input id="communityName" disabled type="text" class="form-control mb-3">
+
+          <pre id="communityKeys"></pre>
+          <div style="text-align: center;">
+            <button class="btn" onclick="downloadString(document.getElementById('communityKeys').innerText, 'text/plain', 'hive-community-keys-'+document.getElementById('communityName').value)">Download <i class="fa fa-download" aria-hidden="true"></i></button>
+          </div>
+
+          <label class="mt-2" for="keysAreSaved">
+            Please confirm that you have your keys stored safely and securely, they cannot be recovered once lost
+            <input id="keysAreSaved" type="checkbox">
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button id="broadcastCommunityCreate" disabled type="button" class="btn btn-primary" data-dismiss="modal">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Bootstrap core JavaScript-->
+<script src="https://cdn.jwplayer.com/libraries/j7Kz0Rae.js"></script>
+<script src="/vendor/jquery/jquery.min.js"></script>
+<!--<script src="https://assets.{{ APP_PAGE_DOMAIN }}/iban.js"></script>
+<script src="https://assets.{{ APP_PAGE_DOMAIN }}/bic.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="/js/sb-admin-2.min.js"></script>
+<script src="/js/offline.js"></script>
+
+<!-- Page level plugins -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="https://unpkg.com/@hiveio/dhive@latest/dist/dhive.js"></script>
+<script>
+    const hiveClient = new dhive.Client(["{{ HIVE_SECURE_NODE_PREFIX }}://{{ HIVE_DEFAULT_NODE }}"], {rebrandedApi: true});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+
+<script>
+    window.showLoader = () => {
+        $('#curtain').removeClass("d-none")
+    }
+    window.hideLoader = () => {
+        $('#curtain').addClass("d-none")
+    }
+</script>
+
+
+<script>
+    const nickname = '{{ userObj.nickname }}';
+
+    async function getValidCommunityId(type) {
+    let id = ((min = 1000, max = 100000) => { // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    })();
+    let account = "hive-" + type + id;
+    if (/^hive-[123]\d{4,6}$/.test(account)) {
+        console.log("> Trying community id: " + account)
+        let accounts = await hive.api.getAccountsAsync([account]);
+        return accounts.length === 0 ? account : getValidCommunityId(type)
+    } else {
+        return getValidCommunityId(type)
+    }
+    }
+
+    let validityRequirements = {title: false, about: false, savedKeys: false};
+    let charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", password = "";
+    for (let i = 0, n = charset.length; i < 50; ++i) {
+    password += charset.charAt(Math.floor(Math.random() * n));
+    }
+    let name;
+    getValidCommunityId(1).then(res => {
+    name = res;
+    })
+
+    function generateKeys(username) {
+
+    const publicKeys = hive.auth.generateKeys(username, password, ['owner', 'active', 'posting', 'memo']);
+
+    const ownerWif = hive.auth.toWif(username, password, 'owner');
+    const activeWif = hive.auth.toWif(username, password, 'active');
+    const postingWif = hive.auth.toWif(username, password, 'posting');
+    const memoWif = hive.auth.toWif(username, password, 'memo');
+    const ownerAuth = { weight_threshold: 1, account_auths: [], key_auths: [[publicKeys.owner, 1]] };
+    const activeAuth = { weight_threshold: 1, account_auths: [], key_auths: [[publicKeys.active, 1]] };
+    const postingAuth = { weight_threshold: 1, account_auths: [], key_auths: [[publicKeys.posting, 1]] };
+
+    const keyInfo = {
+        name,
+        password,
+        public: {owner: ownerAuth, active: activeAuth, posting: postingAuth, memo: publicKeys.memo},
+        private: {owner: ownerWif, active: activeWif, posting: postingWif, memo: memoWif}
+    }
+
+    return keyInfo
+    }
+
+    function toggleBroadcastValidity() {
+        let createBut = $('#broadcastCommunityCreate')
+        let disabled = createBut.is(":disabled")
+        if (validityRequirements.title && validityRequirements.about && validityRequirements.savedKeys) {
+            if (disabled){
+            createBut.prop("disabled", false);
+            }
+        } else {
+            if (!disabled) {
+            createBut.prop("disabled", true)
+            }
+        }
+    }
+
+    function downloadString(text, fileType, fileName) {
+    let blob = new Blob([text], { type: fileType });
+
+    let a = document.createElement('a');
+    a.download = fileName;
+    a.href = URL.createObjectURL(blob);
+    a.dataset.downloadurl = [fileType, a.download, a.href].join(':');
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
+    }
+
+    function communityCreateNotification(type, message='', name='') {
+    switch (type) {
+        case 'success':
+        Swal.fire({
+            title: 'Success',
+            html: "Community account has been created. Log in via <a href='https://peakd.com/@"+name+"'>peakD</a> " +
+            "using your keys from earlier to configure settings/images and appoint community admins/moderators.",
+            icon: 'success',
+            confirmButtonText: 'Okay'
+        });
+        return
+        case 'error':
+        Swal.fire({
+            title: 'Something went wrong',
+            text: message,
+            icon: 'error',
+            confirmButtonText: 'Okay'
+        })
+        return
+    }
+    }
+
+    function buildAndBroadcastCommunityCreate() {
+    let authorities = generateKeys();
+    const op = [
+        [
+        "account_create",
+        {
+            "fee": "3.000 HIVE",
+            "creator": '{{ username }}',
+            "new_account_name": authorities.name,
+            "owner": authorities.public.owner,
+            "active": authorities.public.active,
+            "posting": authorities.public.posting,
+            "memo_key": authorities.public.memo,
+            "json_metadata": ""
+        }
+        ]
+    ]
+
+        if (window.hive_keychain) {
+            console.log('{{ username }}', 'nickname')
+            hive_keychain.requestBroadcast('{{ username }}', op, 'active', (res) => {
+                if (res.success === true) {
+                communityCreateNotification('success', '', authorities.name)
+                } else {
+                communityCreateNotification('error', res.message)
+                }
+            })
+        } else {
+            let key = prompt('Please enter your private active key. It will not be stored, all operations are performed on you computer.')
+            try {
+                key = dhive.PrivateKey.fromString(key);
+                hiveClient.broadcast.sendOperations(op, key).then(
+                function(result) {
+                    communityCreateNotification('success', '', authorities.name)
+                },
+                function(error) {
+                    communityCreateNotification('error', error)
+                }
+                )
+            } catch (e) {
+                console.log(e)
+                communityCreateNotification('error', 'Invalid key.')
+            }
+        }
+    }
+
+    $(() => {
+    $(document).on('click', '.communityCreate', () => {
+        console.log('clicked')
+        $('#communitiesPopover').popover('hide')
+
+        
+        let keys = generateKeys(name)
+
+        console.log(keys)
+        $('#communityKeys').text(
+            'Owner account: ' + keys.name +
+            '\n\nOwner key: ' + keys.private.owner +
+            '\n\nActive key: ' + keys.private.active +
+            '\n\nPosting key: ' + keys.private.posting +
+            '\n\nBackup password: ' + keys.password)
+        $('#communityName').val(name)
+        $('#communityCreateModal').modal()
+    })
+
+    $('#communityTitle').on('change paste keyup', function() {
+        let length = $(this).val().length
+        $('#communityTitleChars').text(20 - length)
+        validityRequirements.title = length >= 3 && length <=20
+        toggleBroadcastValidity()
+    })
+
+    $('#communityAbout').on('change paste keyup', function() {
+        let length = $(this).val().length
+        $('#communityAboutChars').text(120 - length)
+        validityRequirements.about = length > 0 && length <= 120
+        toggleBroadcastValidity()
+    })
+
+    $('#keysAreSaved').on('click', function() {
+        console.log($(this).is(':checked'));
+        validityRequirements.savedKeys = $(this).is(':checked')
+        toggleBroadcastValidity()
+    })
+
+    $('#broadcastCommunityCreate').click(() => {
+        buildAndBroadcastCommunityCreate();
+    })
+    })
+
+</script>
+
+<!-- Start of Async Drift Code -->
+{% block js %}{% endblock %}
+
+{% if guidelinesaccepted == false %}
+    <script>
+        $(() => {
+            $('#tosModal').modal({backdrop: false, keyboard: false});
+            $('#tosCheck').on("change", () => {
+                if ($('#tosCheck').prop("checked") === true) {
+                    $('#tosFooter').removeClass("d-none")
+                } else {
+                    $('#tosFooter').addClass("d-none")
+                }
+            });
+            $('#tosSave').click(() => {
+                if ($('#tosCheck').prop("checked") === true) {
+                    $.ajax({
+                        type: "post",
+                        url: "/api/tos",
+                        success: (res => {
+                            swal.fire({
+                                type: "success",
+                                text: "Thank you!",
+                                confirmButtonText: "Continue"
+                            }).then(() => {
+                                window.location.reload();
+                            })
+                        })
+                    })
+                } else {
+                    swal.fire({
+                        type: "error",
+                        text: "Please accept the rules & guidelines before you continue."
+                    })
+                }
+            })
+        })
+    </script>
+    <div class="modal fade" id="tosModal" style="background: rgba(0,0,0,.9);" tabindex="-1" role="dialog"
+         aria-labelledby="" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content ">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Please accept the Rules & Guidelines before you
+                        proceed</h5>
+                </div>
+                <div class="modal-body">
+                    Hello {{ user }},
+                    <p class="card-text">
+                        We believe Freedom of Speech is absolute but there are some instances where we would
+                        have to restrict content, but for clarity here are 3speak's policies on various subjects:
+                        <br>
+                        <br>
+                        <b>We fully support your right to be offensive as long as it does not violate any of our terms
+                            (see below).</b>
+                        <br>
+                        <br>
+                        CRITICISING RELIGION, BELIEFS, GROUPS, PEOPLE: <span
+                                class="fas fa-check-circle text-success"></span><br>
+                        <br>
+                        SWEARING AND PROFANITY: <span class="fas fa-check-circle text-success"></span> (slander not
+                        allowed)<br>
+                        <br>
+                        OFFENSIVE JOKES: <span class="fas fa-check-circle text-success"></span> (If you are making a
+                        joke which
+                        could be construed as something illegal or slanderous, it might be a good idea to make it clear.
+                        As long
+                        as you aren't calling for people to be killed or harmed in any way.)<br>
+                        <br>
+                        ALTERNATIVE POLITICS / CONSPIRACIES / CRITICIZING GOVERNMENTS &amp; WORLD LEADERS:
+                        <span class="fas fa-check-circle text-success"></span><br>
+                        <br>
+                        PSEUDONYMS: <span class="fas fa-check-circle text-success"></span><br>
+                        <br>
+                        <b>CALLING FOR VIOLENCE OR FOOTAGE OF VIOLENCE</b>: <span
+                                class="fas fa-times-circle text-danger"></span>
+                        <br>
+                    <hr>
+                    <b>Is 3Speak free of charge?</b> <br>
+                    While we do no longer charge a monthly fee we still take a 10% beneficiary to our threespeakwallet
+                    account plus 1% for @steem.dao
+                    </p>
+                    <div class="from-group">
+                        <input type="checkbox" id="tosCheck"> I {{ user }} hereby agree to the following rules and
+                        guidelines of 3Speak and understand that breaking those rules can lead to a platform wide
+                        permanent ban.
+                    </div>
+                </div>
+                <div class="modal-footer d-none" id="tosFooter">
+                    <button class="btn btn-primary" id="tosSave">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
+
+</body>
+
+</html>

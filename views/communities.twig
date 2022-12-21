@@ -1,0 +1,114 @@
+{% extends './layout.twig' %}
+
+
+{% block content %}
+    <div class="container">
+        <h1 class="white_col">Communities</h1>
+        <p class="white_col">Keep scrolling to explore more exciting communities!</p>
+        <div class="row">
+            <div class="col-12">
+                <h3 style="display: inline-block;">Communities</h3>
+                <span class="float-right mb-3">
+                    <button class="communityCreate btn btn-primary">
+                    Create +
+                    </button>
+                </span>
+                </div>
+                <div class="col-12 alert alert-primary">
+                <span>Make sure you have a minimum of 3.00 HIVE in your HIVE wallet to create a new community</span>
+            </div>
+        </div>
+        <h2 id="placeholder">Loading...</h2>
+        <div class="row" id="communities_threespeak"></div>
+        <div class="row" id="communities_empty"></div>
+    </div>
+{% endblock %}
+
+{% block js %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/template7/1.4.0/template7.min.js"></script>
+  <script src="https://rawgit.com/leizongmin/js-xss/master/dist/xss.js"></script>
+  <script src="js/dhive.js"></script>
+  <script id="community-template" type="text/template7">
+    {% verbatim %}
+    <div class="col-lg- 4 col-md-4 col-sm-12 mb-3 {{#if community.hasVideos}}{{else}}noVideos{{/if}}">
+    <a {{#if community.hasVideos}}href="/c/{{ community.name }}"{{else}}href="#" onclick="emptyCommunity()"{{/if}} class="font-weight-bold">
+        <div class="community-card channels-card {{#if community.darkModeEnabled}}bg-dark{{else}}{{/if}}">
+
+            <div class="text-left" style="display: inline-block; float: left">
+                <img style="width: 40px; height: 40px; border-radius: 50%; vertical-align: middle"
+                     src="{{ community.avatar_url }}?size=icon" alt="" loading="lazy">
+
+                {{ community.title }}
+
+            </div>
+            <div class="text-right" style=" display: inline-block;padding-top: 2px;float: right;">
+                <div>Pending payouts</div>
+                <span class="text-success">${{ community.sum_pending }}</span>
+                <i class="fal fa-chevron-circle-right"></i>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+    </a>
+</div>
+    {% endverbatim %}
+  </script>
+  <script>
+
+    function emptyCommunity() {
+      swal.fire({
+        icon: "info",
+        text: "So far no one uploaded a video to this community. You can start uploading videos to this community in the creator studio!"
+      })
+    }
+
+    $(() => {
+      let communityTPL = Template7.compile(document.getElementById('community-template').innerHTML);
+
+      let threespeakCommunities = {{ community_threespeak|json_encode() }};
+
+      async function load(last = "") {
+        let reqBody = {
+          "id": 1,
+          "jsonrpc": "2.0",
+          "method": "bridge.list_communities",
+          "params": {last, limit: 100}
+        };
+
+        let communities = await (await fetch(`{{ HIVE_SECURE_NODE_PREFIX }}://{{ HIVE_DEFAULT_NODE }}`, {
+          method: 'post',
+          body: JSON.stringify(reqBody),
+          headers: {'Content-Type': 'application/json'},
+        })).json();
+
+        if (last === '') {
+          $('#placeholder').remove();
+        }
+
+        const darkModeEnabled = $('body').hasClass("bg-darker")
+
+        for (let community of communities.result) {
+          if (community.title !== community.name) {
+            community.hasVideos = threespeakCommunities.includes(community.name)
+            community.title  = filterXSS(community.title);
+            community.avatar_url = 'https://images.hive.blog/u/' + community.name + '/avatar';
+            community.cover_url = '{{ APP_IMAGE_CDN_DOMAIN }}/user/' + community.name + "/cover.png";
+            community.darkModeEnabled = darkModeEnabled;
+            let html = communityTPL({community});
+            $(community.hasVideos === true ? '#communities_threespeak' : '#communities_empty').append(html);
+          }
+        }
+
+        if (communities.result.length === 100) {
+          setTimeout(() => {
+            load(communities.result[communities.result.length-1].name)
+          }, 1000)
+
+        }
+      }
+
+      load();
+    })
+  </script>
+
+  {#    <script>{% include './js/communityFollow.twig' %}</script>#}
+{% endblock %}

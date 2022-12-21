@@ -1,0 +1,89 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Verifying Payment</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <p class="alert alert-danger">
+                    Your payment is being verified. This can take up to five minutes.
+                    <br>
+                    <b>Please do not close this site.
+                   If you close this window before the payment is confirmed your funds will be lost.
+                    </b>
+                </p>
+
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h1>
+                            <i class="fa fa-spin fa-spinner"></i>
+                        </h1>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        function check(id) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "/verify",
+                    type: "post",
+                    data: {
+                        id
+                    },
+                    success: (res) => {
+                        if (res.success) {
+                            resolve(true)
+                        } else {
+                            resolve(false)
+                        }
+                    }
+                })
+            })
+        }
+
+        function sleep(s) {
+            return new Promise(resolve => setTimeout(resolve, s*1000));
+        }
+
+        $(async () => {
+            for (let i = 0; i <= 10000; i++) {
+                let status = await check("{{ id }}")
+                if (status === true) {
+                    i = 101;
+                    Swal.fire(
+                        'Thank you!',
+                        'We received your payment. You can now use 3Speak for the next month! Thank you for your support.',
+                        'success'
+                    ).then(() => {
+                        window.location.href = "/"
+                    })
+                }
+                await sleep(3)
+            }
+
+            Swal.fire(
+                'Oh no!',
+                'We could not confirm your payment. Please contact us on Discord: https://discord.me/3speak',
+                'error'
+            ).then(() => {
+                window.location.href = "/"
+            })
+        })
+    </script>
+{% endblock %}

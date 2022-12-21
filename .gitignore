@@ -1,0 +1,8 @@
+node_modules
+package-lock.json
+.idea
+uploads
+.env
+adminsdk.json
+hive-test-script.js
+connect.sh

@@ -1,0 +1,43 @@
+<div class="col-xl-{% if size is defined %}{{ size }}{% else %}2{% endif %} col-lg-3  col-6 p-2 mb-3" style="">
+    <div class="teaser_holder text-center">
+        {% if video.pinned == true %}<div class="card-label card-label-pinned">pinned</div>{% endif %}
+        {% if video.score_boost is defined %}<div class="card-label card-label-pinned">boosted</div>{% endif %}
+        {% if video.views %}
+        <div class="card-label card-label-views">
+            <img class="play_i" src="/img/play.svg" height="11px" width="11px">
+            <span>{{ video.views }}</span>
+        </div>
+        {% endif %}
+        {% if video.duration %}
+        <div class="card-label">
+            {{ video.duration|duration }}
+        </div>
+        {% endif %}
+        <a href="/watch?v={{ video.owner }}/{{ video.permlink }}" {% if video.isNsfwContent == true %}class="href-disabled card-video-thumbnail" data-permlink="{{ video.permlink }}"{% else %}class="card-video-thumbnail"{% endif %}>
+            <!--<img style="width: 100% !important; padding: 5px; max-height: 200px;" data-permlink="{{ video.permlink }}" class="{% if video.isNsfwContent == true %}img-thumbnail{% endif %} img-fluid bg-dark" src="{% if video.isNsfwContent == true %}/img/nsfw.png{% else %}{{video.thumbUrl}}{% endif %}"> -->
+            <img style="width: 100% !important; padding: 5px; max-height: 200px;  object-fit: cover;" data-permlink="{{ video.permlink }}" width="1920" height="1080" class="{% if video.isNsfwContent == true %}img-thumbnail{% endif %} img-fluid bg-dark" src="{% if video.isNsfwContent == true %}/img/nsfw.png{% else %}{{video.thumbUrl}}{% endif %}" loading="lazy">
+        </a>
+    </div>
+  <div style="min-height: 65px">
+    <h5 data-toggle="tooltip" data-placement="bottom" title="{{ video.title|striptags }}" class="max-lines card-video-title mt-2 word-break">
+      <a href="/watch?v={{ video.owner }}/{{ video.permlink }}">{{ video.title|striptags }}</a>
+    </h5>
+
+    <div style="bottom: 0; width: calc( 100% - 1rem )" class="position-absolute card-video-footer">
+      <div class="mt-2 d-md-flex justify-content-between" >
+        <span class="black_col">
+            <b><a href="/user/{{ video.owner }}"{% if video.isTeam == true %} class="text-info"{% endif %}> <i class="fa fa-user"></i> {{ video.owner }} {% if video.isTeam == true %}(admin){% endif %}</a></b>
+        </span>
+        <span>{{ video.created }} ago</span>
+        <span><b>${% if video.payout %}{{ video.payout }}{% else %}<i data-payout="{{ video.owner }}/{{ video.permlink }}"></i>{% endif %}</b></span>
+        {% if isAdmin is defined and isAdmin == true %}
+          {% if muted is defined and muted == true %}
+            <span class="ml-1"> | <a data-communityunmute="{{ video.owner }}/{{ video.permlink }}"><b>Unmute</b></a></span>
+          {% else %}
+            <span class="ml-1"> | <a data-communitymute="{{ video.owner }}/{{ video.permlink }}"><b>Mute</b></a></span>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,79 @@
+{% extends './layout.twig' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            {% for donate in donation_accounts %}
+                <div class="col-12 col-sm-6 col-md-4 p-2">
+                    <h2>{{ donate.ticker }}</h2>
+                    <img src="{{ donate.img }}" alt="{{ donate.ticker }} logo" width="100%">
+                    <h4>Address</h4>
+                    <sup>{{ donate.address }}</sup><br>
+                    <div data-remove="{{ donate._id }}" class="btn btn-outline-danger">Remove</div>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="addAccount" class="btn btn-outline-success">Add account</div>
+    </div>
+
+    <div class="modal fade" id="addAccountModal" tabindex="-1" role="dialog" aria-labelledby="addAccountModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Crypto Account</h5>
+                </div>
+                <div class="modal-body">
+                    <select id="ticker">
+                        {% for crypto in all_accounts %}
+                        <option>{{ crypto.ticker }}</option>
+                        {% endfor %}
+                    </select>
+                    <input id="address" type="text">
+                </div>
+                <div class="modal-footer">
+                    <input id="addComplete" type="submit" class="btn btn-success" value="Done" data-dismiss="modal">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block js %}
+    <script>
+        $(() => {
+            $('#addAccount').click(e => {
+                $('#addAccountModal').modal()
+            })
+
+            $('#addComplete').click(e => {
+                let ticker = $('#ticker').val()
+                let address = $('#address').val()
+
+                $.ajax({
+                    type: 'post',
+                    url: '/donations',
+                    data: {ticker, address},
+                    complete: () => {
+                        window.location.reload()
+                    }
+                })
+            })
+
+            $('[data-remove]').click(function() {
+                let address = $(this).data('remove')
+
+                $.ajax({
+                    type: 'post',
+                    url: '/donations/delete',
+                    data: {address},
+                    complete: () => {
+                        window.location.reload()
+                    }
+                })
+            })
+        })
+    </script>
+{% endblock %}

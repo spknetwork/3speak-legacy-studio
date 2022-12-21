@@ -1,0 +1,178 @@
+{% extends 'layout.twig' %}
+
+{% macro getBorderColour(status) %}
+    {% if status == 'uploaded' %}border-left-primary{% endif %}
+    {% if status == 'encoding' %}border-left-warning{% endif %}
+    {% if status == 'deleted' %}border-left-danger{% endif %}
+    {% if status == 'published' %}border-left-success{% endif %}
+{% endmacro %}
+{% macro getTextColour(status) %}
+    {% if status == 'uploaded' %}text-primary{% endif %}
+    {% if status == 'encoding' %}text-warning{% endif %}
+    {% if status == 'deleted' %}text-danger{% endif %}
+    {% if status == 'published' %}text-success{% endif %}
+{% endmacro %}
+{% macro getIcon(status) %}
+    {% if status == 'uploaded' %}fa-upload{% endif %}
+    {% if status == 'encoding' %}fa-spin fa-cog{% endif %}
+    {% if status == 'deleted' %}fa-trash{% endif %}
+    {% if status == 'published' %}fa-broadcast-tower{% endif %}
+{% endmacro %}
+{% macro getStatusText(status) %}
+    {% if status == 'uploaded' %}Uploaded{% endif %}
+    {% if status == 'encoding' %}Encoding{% endif %}
+    {% if status == 'deleted' %}Deleted{% endif %}
+    {% if status == 'published' %}Published{% endif %}
+    {% if status == 'encoding_failed' %}Encoding Failed. Please contact support{% endif %}
+    {% if status == 'encoding_queued' %}Queued for encoding{% endif %}
+{% endmacro %}
+{% import _self as helper %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">My Blogs</h1>
+            <a href="/api/blog/new" class="btn btn-primary">New Blog</a>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#drafts" role="tab" aria-controls="nav-home" aria-selected="true">Drafts</a>
+                        <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#published" role="tab" aria-controls="nav-profile" aria-selected="false">Published</a>
+                        <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#deleted" role="tab" aria-controls="nav-contact" aria-selected="false">Deleted</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="drafts" role="tabpanel" aria-labelledby="nav-home-tab">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <td></td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for draft in blogs.drafts %}
+                                <tr>
+                                    <td>{{ draft.title|striptags }}</td>
+                                    <td>{{ draft.category }}</td>
+                                    <td>
+                                        <span class="badge badge-warning">Draft</span>
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-sm btn-primary" href="/editor?id={{ draft._id }}">
+                                            <i class="fas fa-fw fa-pencil-alt"></i>
+                                            Edit
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="published" role="tabpanel" aria-labelledby="nav-profile-tab">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <td></td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for draft in blogs.published %}
+                                <tr>
+                                    <td>{{ draft.title|striptags }}</td>
+                                    <td>{{ draft.category }}</td>
+                                    <td>
+                                        <span class="badge badge-success">Published</span>
+                                    </td>
+                                    <td>
+                                        <a target="_blank" class="btn btn-sm btn-primary" href="//{{ APP_PAGE_DOMAIN }}/user/{{ draft.channel }}/blog/{{ draft.permlink }}">
+                                            <i class="fas fa-fw fa-eye"></i>
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="deleted" role="tabpanel" aria-labelledby="nav-contact-tab">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for draft in blogs.deleted %}
+                                <tr>
+                                    <td>{{ draft.title|striptags }}</td>
+                                    <td>{{ draft.category }}</td>
+                                    <td>
+                                        <span class="badge badge-danger">Deleted</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {#{% for video in videos %}#}
+            {#<!-- Earnings (Monthly) Card Example -->#}
+            {#<div class="col-6 mb-2">#}
+            {#<div class="card {{ helper.getBorderColour(video.status) }} shadow h-100 py-2">#}
+            {#<div class="card-body">#}
+            {#<div class="row no-gutters align-top">#}
+            {#<div class="col mr-2">#}
+            {#<img class="img-thumbnail mr-2" style="max-width: 130px" src="/img/default-thumbnail.jpg" alt="">#}
+            {#<div style="vertical-align: top;" class="d-inline-block  font-weight-bold {{ helper.getTextColour(video.status) }} text-uppercase mb-1">{{ video.title|substr(0,50) }}#}
+            {#<div class="mb-0 font-weight-bold text-gray-800">{{ video.description|substr(0,50) }}</div>#}
+            {#<p class="mt-2 border-top-primary text-dark">#}
+            {#<i class="fas fa-clock">#}
+            {#{{ video.duration|hhmmss }}#}
+            {#</i>  |#}
+            {#<i class="fas fa-file">#}
+            {#{{ video.size|filesize }}#}
+            {#</i> |#}
+
+            {#<a href="/video/{{ video.permlink }}/edit" class="btn btn-sm btn-primary">#}
+            {#<i class="fas fa-pencil-alt"></i> Edit#}
+            {#</a>#}
+
+            {#</p>#}
+            {#</div>#}
+
+            {#</div>#}
+            {#<div class="col-auto align-middle">#}
+            {#<h5 class="mt-0 d-inline-block">#}
+            {#<span class="badge badge-secondary">#}
+            {#{{ video.status }}#}
+            {#</span>#}
+            {#</h5>#}
+            {#<i class="fas {{ helper.getIcon(video.status) }} fa-2x text-gray-300"></i>#}
+            {#</div>#}
+            {#</div>#}
+            {#</div>#}
+            {#</div>#}
+            {#</div>#}
+            {#{% endfor %}#}
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}

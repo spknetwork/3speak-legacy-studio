@@ -1,0 +1,36 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Payment Required</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+<div class="col">
+    <p class="alert alert-info">
+        Your next membership fee is due today! Please <b>ONLY</b> use the link below to pay. Transfers not made via the link below will not be detected by our system. Please understand that payments not made through the link below can not be refunded.
+    </p>
+
+    <div class="card">
+        <div class="card-body">
+            The monthly fee is <code>{{ payment.amount }} {{ payment.currency }}</code>
+
+            <a href="{{ paymentURL }}" class="btn btn-block btn-primary">Pay Now</a>
+        </div>
+    </div>
+
+    <p class="alert alert-info mt-4">
+        If you have already paid but still see that message please send the transaction ID, your steem name to: support@3speak.zohodesk.eu
+    </p>
+
+</div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}

@@ -1,0 +1,344 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Welcome to 3Speak!</h1>
+
+        </div>
+
+        <!-- Content Row -->
+        <div id="no-account" class="row {% if noIdentity != true %}d-none{% endif %}">
+            <div class="col-12">
+                <div>
+                    <p class="alert alert-success">
+                        <b>Welcome to 3Speak! If you already have a Hive account, you can use 3Speak by connecting it below.  If you do not have a Hive account you can create one for free by clicking the second button.</b>
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-3"></div>
+            <div class="col-12 col-md-6">
+
+                <button id="connectHive" class="btn btn-primary btn-block">If you have a HIVE account click here. </button>
+                <button id="createHiveAccount" class="btn btn-info btn-block mt-2">Don't have a HIVE account yet? Click here to create one!</button>
+
+            </div>
+            <div class="col-12 col-md-3"></div>
+
+        </div>
+        <div id="connect-hive" class="row  {% if noIdentity == true %}d-none{% endif %}">
+            <div class="col-12">
+                <div>
+                    <p class="alert alert-danger">
+                        <b>Welcome to 3Speak! So nice to see you
+                            here! {% if newUser != false %}Complete your signup by connecting your HIVE
+                                account.{% endif %}</b>
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-12" id="step_1">
+                <div class="form-group">
+                    <label for="">HIVE Account</label>
+                    <input id="username" type="text" class="form-control">
+                    <small class="text-danger d-none" id="account_error"></small>
+                </div>
+
+                <button class="btn btn-primary" id="checkAccount">Next</button>
+                <button class="btn btn-primary" id="checkAccount_keychain">Next (Login with Hive keychain)</button>
+
+            </div>
+
+            <div class="col-12 d-none" id="step_2_5">
+
+                <p class="alert alert-info">
+                    To start Using 3Speak we require your posting authority. This allows us to publish your uploaded
+                    videos to HIVE. You only have to grant us posting authority once.
+                </p>
+
+                <div class="form-group">
+                    <label for="">Your Private <b>Active</b> Key:</label>
+                    <input id="wif_2_5" type="text" class="form-control">
+                    <small class="text-danger d-none" id="wif_2_5_error"></small>
+                </div>
+
+                <button class="btn btn-primary" id="check_2_5">Next</button>
+
+            </div>
+            <div class="col-12 d-none" id="step_2">
+
+                <p class="alert alert-info">
+                    Please enter your private posting key below to verify the ownership of your HIVE account. You
+                    only
+                    have to do this once.
+                </p>
+
+                <div class="form-group">
+                    <label for="">Your Private <b>Posting</b> Key:</label>
+                    <input id="wif_2" type="text" class="form-control">
+                    <small class="text-danger d-none" id="wif_2_error"></small>
+                </div>
+
+                <button class="btn btn-primary" id="check_2">Next</button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- /.container-fluid -->
+{% endblock %}
+{% block js %}
+    <!--<script src="/js/steem.min.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/@hiveio/hive-js/dist/hive.min.js"></script>
+
+
+    <script>
+        hive.api.setOptions({useAppbaseApi: true, url: '{{HIVE_SECURE_NODE_PREFIX}}://{{HIVE_DEFAULT_NODE}}'})
+    </script>
+
+    <script>
+
+
+
+        function hasPostingAuthority(account, authority) {
+            return account.posting.account_auths.find(x => x[0] === authority) !== undefined
+        }
+
+        function isValidWif(wif, account, authority) {
+
+            if (!hive.auth.isWif(wif)) return false;
+
+            for (key_auth of account[authority].key_auths) {
+                if (hive.auth.wifIsValid(wif, key_auth[0])) {
+                    return true
+                }
+            }
+
+            return false;
+        }
+
+        function sign(message, wif, account, authority) {
+                const payload = {
+                    message,
+                    authority,
+                    account: account.name
+                }
+                return hive.memo.encode(wif, 'STM6Us37C8u4owTnPjdXesf5GSrWkmTA7Hd9hA78QuMcnMw8Acy6J', '#' + JSON.stringify(payload))
+            if (isValidWif(wif, account, authority)) {
+            } else {
+                return false;
+            }
+        }
+
+        $(() => {
+
+            $('#connectHive').click(() => {
+                $('#no-account').addClass("d-none");
+                $('#connect-hive').removeClass("d-none")
+            })
+
+            $('#createHiveAccount').click(() => {
+                let create = window.open("/api/createAccount");
+                create.focus();
+                $('#no-account').addClass("d-none");
+                $('#connect-hive').removeClass("d-none")
+            })
+
+            $('#check_2_5').click(async () => {
+                const [account] = await hive.api.getAccountsAsync([$('#username').val()]);
+                $.ajax({
+                    url: '/api/identityChallenge',
+                    data: {
+                        account: $('#username').val(),
+                        authority: 'active'
+                    },
+                    success: res => {
+                        let signed_message = sign(res.challenge, $('#wif_2_5').val(), account, 'active')
+
+                        if (signed_message === false) {
+                            $('#wif_2_5_error').removeClass('d-none')
+                            if (hive.auth.isPubkey($('#wif_2_5').val())) {
+                                $('#wif_2_5_error').text('The key you entered is a public key. Please enter your private active key.')
+                            } else {
+                                if (!hive.auth.isWif($('#wif_2_5').val())) {
+                                    $('#wif_2_5_error').text('You did not enter a valid private key. Private keys always start with the number 5.')
+                                } else {
+                                    $('#wif_2_5_error').text('The key you entered is not your private active key.')
+                                }
+                            }
+
+                        } else {
+                            hive.broadcast.addAccountAuth({
+                                signingKey: $('#wif_2_5').val(),
+                                username: $('#username').val(),
+                                authorizedUsername: "threespeak",
+                                role: 'posting',
+                                weight: 1
+                            }, (err, res) => {
+                                $.ajax({
+                                    url: '/api/completeIdentityChallenge',
+                                    type: 'post',
+                                    data: {
+                                        signed_message
+                                    },
+                                    success: res => {
+                                        if (res.success === true) {
+                                            window.location.href = '/dashboard'
+                                        } else {
+                                            $('#wif_2_5_error').removeClass('d-none').text(res.error)
+                                        }
+                                    }
+                                })
+                            })
+                        }
+
+
+                    }
+                })
+            })
+
+            $('#check_2').click(async () => {
+                const [account] = await hive.api.getAccountsAsync([$('#username').val()]);
+                $.ajax({
+                    url: '/api/identityChallenge',
+                    data: {
+                        account: $('#username').val(),
+                        authority: 'posting'
+                    },
+                    success: res => {
+                        console.log(res.challenge, $('#wif_2').val(), account, 'posting')
+                        let signed_message = sign(res.challenge, $('#wif_2').val(), account, 'posting')
+                        $.ajax({
+                            url: '/api/completeIdentityChallenge',
+                            type: 'post',
+                            data: {
+                                signed_message
+                            },
+                            success: res => {
+                                if (res.success === true) {
+                                    window.location.href = '/dashboard'
+                                } else {
+                                    $('#wif_2_error').text(res.error).removeClass("d-none")
+                                }
+                            }
+                        })
+                    }
+                })
+            })
+
+
+
+            $('#checkAccount_keychain').click(async () => {
+                console.log('lsdgb')
+                console.log(window.hive_keychain)
+                const [account] = await hive.api.getAccountsAsync([$('#username').val()]);
+                if (account === undefined) {
+                    $('#account_error').text("This HIVE account does not exist. Please chose an existing HIVE account.").removeClass("d-none")
+                } else {
+                    $('#step_1').addClass("d-none");
+
+                    if (!hasPostingAuthority(account, 'threespeak')) {
+                        window.hive_keychain.requestAddAccountAuthority($('#username').val(), "threespeak", "posting", 1, async (result, err) => {
+                            
+                            if (result.success) {                                              
+                                $.ajax({
+                                    url: '/api/identityChallenge',
+                                    data: {
+                                        account: $('#username').val(),
+                                        authority: 'posting'
+                                    },
+                                    success: res => {
+                                        const payload = {
+                                            message: res.challenge,
+                                            authority: "posting",
+                                            account: res.account
+                                        }
+
+                                        window.hive_keychain.requestEncodeMessage($('#username').val(), "threespeak", `#${JSON.stringify(payload)}`, "Posting", (result) => {
+                                            if(result.success) {
+                                                $.ajax({
+                                                    url: '/api/completeIdentityChallenge',
+                                                    type: 'post',
+                                                    data: {
+                                                        signed_message: result.result,
+                                                        keychain: true
+                                                    },
+                                                    success: res => {
+                                                        if (res.success === true) {
+                                                            window.location.href = '/dashboard'
+                                                        } else {
+                                                            $('#wif_2_error').text(res.error).removeClass("d-none")
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        })
+
+                        } else {
+                            /*window.hive_keychain.requestAddAccountAuthority($('#username').val(), "threespeak", "Posting", 1, (err, result) => {
+                                console.log(err, result)   
+                            })*/
+                            $.ajax({
+                                    url: '/api/identityChallenge',
+                                    data: {
+                                        account: $('#username').val(),
+                                        authority: 'posting'
+                                    },
+                                    success: res => {
+                                        const payload = {
+                                            message: res.challenge,
+                                            authority: "posting",
+                                            account: res.account
+                                        }
+
+                                        window.hive_keychain.requestEncodeMessage($('#username').val(), "threespeak", `#${JSON.stringify(payload)}`, "Posting", (result) => {
+                                            if(result.success) {
+                                                $.ajax({
+                                                    url: '/api/completeIdentityChallenge',
+                                                    type: 'post',
+                                                    data: {
+                                                        signed_message: result.result,
+                                                        keychain: true
+                                                    },
+                                                    success: res => {
+                                                        if (res.success === true) {
+                                                            window.location.href = '/dashboard'
+                                                        } else {
+                                                            $('#wif_2_error').text(res.error).removeClass("d-none")
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                    }
+                }
+            })
+
+            $('#checkAccount').click(async () => {
+                const [account] = await hive.api.getAccountsAsync([$('#username').val()]);
+                if (account === undefined) {
+                    $('#account_error').text("This HIVE account does not exist. Please chose an existing HIVE account.").removeClass("d-none")
+                } else {
+                    console.log(account)
+                    $('#step_1').addClass("d-none");
+                    if (!hasPostingAuthority(account, 'threespeak')) {
+                        $('#step_2_5').removeClass("d-none") //only sign
+                    } else {
+                        $('#step_2').removeClass("d-none") //posting authority
+                    }
+                }
+            })
+        });
+
+    </script>
+{% endblock %}

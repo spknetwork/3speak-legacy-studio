@@ -1,0 +1,310 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Livestream</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                {% if stream.is247 != true %}
+                    <p class="alert alert-danger">
+                        If you plan to host a live show that runs 24/7 please get in touch with us and <b>do not</b> use
+                        the stream server shown below. We have dedicated hardware for 24/7 livestreams.
+                    </p>
+                {% endif %}
+                <p class="alert alert-primary mt-2">
+                    <b>Recommended Settings:</b><br>
+                    Bitrate: 3500 kbps <br>
+                    Keyframe Interval: 2 <br>
+                </p>
+
+            </div>
+        </div>
+        <!-- Content Row -->
+        <div class="row">
+
+            <div class="col col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="">Stream Server:</label>
+                            <input type="text" class="form-control" readonly
+                                   value="rtmp://{{ APP_LIVE_DOMAIN }}/{% if stream.is247 == true %}prod{% else %}LiveApp{% endif %}">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Stream Key:</label>
+                            <input id="sk" type="password" class="form-control" readonly
+                                   value="{{ key }}">
+                            <button class="btn mt-2 btn-primary btn-block" id="showSK">Show Stream Key</button>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="card mt-2">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="">Chat Bot:</label>
+                            <p>If you are a developer you can use this access token for your personal chatbot.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Bot Name:</label>
+                            <input type="text" class="form-control" readonly
+                                   value="{{ identity.username }}.bot">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Access Token:</label>
+                            <input type="text" class="form-control" readonly
+                                   value="{{ botKey.token }}">
+                        </div>
+
+                        <p>An example bot written in nodeJS can be found <a
+                                    href="https://gist.github.com/wehmoen/bdd6631977c29a4586f6491f1cb4b76f"
+                                    target="_blank">here</a>.</p>
+
+                    </div>
+                </div>
+
+                <div class="card mt-2">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="">Technical Support:</label>
+                            <p>If you are experiencing technically difficulties livestreaming on 3Speak try this:</p>
+                        </div>
+
+                        <div>
+                            <button class="btn btn-primary btn-danger" id="openSpeedtest">
+                                Network Speed Test
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="">Stream Title:</label>
+                            <input type="text" id="title" class="form-control" value="{{ stream.title|escape }}">
+                            <button class="btn mt-2 btn-primary btn-block" id="saveTitle">Save Title</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="">Stream Informations:</label>
+
+                            <table class="table">
+                                <tr class="d-none">
+                                    <td><b>Status:</b></td>
+                                    <td id="stream_status"><i class="fa fa-spin fa-spinner"></i></td>
+                                </tr>
+                                <tr class="d-none">
+                                    <td><b>Viewer:</b></td>
+                                    <td id="stream_viewer"><i class="fa fa-spin fa-spinner"></i></td>
+                                </tr>
+                                <tr>
+                                    <td><b>Preview:</b></td>
+                                    <td>
+                                        <iframe width="560" height="315"
+                                                src="https://{{ APP_PAGE_DOMAIN }}/embed/live/{{ identity.username }}"
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen></iframe>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button data-publish="schedule" class="btn btn-block btn-primary">
+                                            Schedule Livestream
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button data-publish="livenow" class="btn btn-block btn-info">
+                                            Publish "I am Live Now"-Post
+                                        </button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+
+    <div class="modal" id="speedtest" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Connection Issues?</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>If you have issues streaming on 3Speak please follow these steps:</p>
+                    <ol>
+                        <li>Open <a href="https://speedtest.net" target="speedtest_3speak">Speedtest.NET</a></li>
+                        <li>Wait for the page to load and click "Change Server"</li>
+                        <li>Search for "3Speak" in the server list</li>
+                        <li>Chose "Nuremberg - 3Speak Media Limited" from the server list by clicking on it</li>
+                        <li>Click the "GO" button and wait for the speed test to finish.</li>
+                        <li>If your download or upload speed show below 10 Mbps or your ping shows above 100ms your internet isn't good enough to livestream on 3Speak</li>
+                    </ol>
+                    <p>If you follow the steps above and your download and upload speeds are at least 10 Mbps and your pingis below 100ms please copy the link in your browsers address bar and create a support ticket at <a target="_blank" href="https://{{ SUPPORT_PORTAL }}">{{ SUPPORT_PORTAL }}</a> </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="publish-schedule" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Schedule Livestream</h5>
+                    <button type="button" id="close_schedule" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Publish a short announcement that you soon will go live:</p>
+                    <input type="text" class="form-control" placeholder="Title" value="Livestream starting soon!" id="schedule_title">
+                    <textarea id="schedule_body" class="form-control w-100" cols="30" rows="15" maxlength="2048">I will go live on my [3Speak Channel](https://{{ APP_PAGE_DOMAIN }}/user/{{ identity.username }}/live) in a few minutes.
+
+I am going to talk about:
+
+- the weather
+- blockchain investments
+- 3Speak
+
+Hope to see you!
+                    </textarea>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="publish-schedule-submit" class="btn btn-primary">Publish</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="publish-live" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Announce Livestream</h5>
+                    <button id="close_live" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Publish an info that you are live now:</p>
+
+                    <p class="alert alert-info">
+                        We suggest to let your stream at least run for 30 seconds before you post this announcement.
+                    </p>
+                    <input type="text" class="form-control" placeholder="Title" id="schedule_live_title" value="I am live on 3Speak!">
+                    <textarea id="live_body" class="form-control w-100" cols="30" rows="15" maxlength="2048">Join my livestream on 3Speak: [Watch {{ identity.username }} live on 3Speak](https://{{ APP_PAGE_DOMAIN }}/user/{{ identity.username }}/live)
+
+                    </textarea>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="publish-live-submit" class="btn btn-primary">Publish</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script>
+        $(() => {
+            $('#openSpeedtest').click(() => {
+                $('#speedtest').modal()
+            });
+            $('[data-publish="schedule"]').click(() => {
+                $('#publish-schedule').modal()
+            });
+
+            $('[data-publish="livenow"]').click(() => {
+                $('#publish-live').modal()
+            });
+
+            $('#publish-schedule-submit').click(() => {
+                if ($('#schedule_body').val().trim().length === 0) {
+                    return alert("The post can not be empty.")
+                }
+
+                if ($('#schedule_title').val().trim().length === 0) {
+                    return alert("The title can not be empty.")
+                }
+
+                publish($('#schedule_title').val(), $('#schedule_body').val(), $('#close_schedule'))
+            })
+            $('#publish-live-submit').click(() => {
+                if ($('#live_body').val().trim().length === 0) {
+                    return alert("The post can not be empty.")
+                }
+
+                if ($('#schedule_live_title').val().trim().length === 0) {
+                    return alert("The title can not be empty.")
+                }
+                publish($('#schedule_live_title').val(), $('#live_body').val(), $('#close_live'))
+            })
+
+            function publish(title, body, close_el) {
+                $.ajax({
+                    url: '/api/publish',
+                    data: {
+                        title,
+                        body,
+                    },
+                    type: "post",
+                    success: (() => {
+                        toastr["success"]("Post published!")
+                        close_el.click();
+                    }),
+                    error: ((e) => {
+                        let err = e.responseJSON ? e.responseJSON.error ? e.responseJSON.error : '' : '';
+                        toastr["error"]("The post not be published! " + err )
+                        close_el.click();
+                    })
+                })
+            }
+
+            $('#showSK').click(() => {
+                if ($('#sk').attr("type") === 'password') {
+                    $('#sk').attr("type", "text")
+                } else {
+                    $('#sk').attr("type", "password")
+                }
+            });
+            $('#saveTitle').click(() => {
+                $.ajax({
+                    url: "/live/save",
+                    type: "post",
+                    data: {
+                        title: $('#title').val()
+                    },
+                    success: (() => {
+                        toastr["success"]("Saved!")
+                    }),
+                    error: ((e) => {
+                        toastr["error"]("The title could not be saved!")
+                    })
+                })
+            })
+        })
+    </script>
+{% endblock %}

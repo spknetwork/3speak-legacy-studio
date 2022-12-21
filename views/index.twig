@@ -1,0 +1,490 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+            <h3>Welcome back {{ identity.username }}!</h3>
+            {#<div>
+                <p class="alert alert-danger">
+                    <b>We added Livestreaming to 3Speak! Go live today using OBS and chat with your community!</b>
+                </p>
+            </div>#}
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+
+
+            <!-- Earnings (Monthly) Card Example -->
+
+            {% if creator.canProxyUpvote == true %}
+                <div class="col-md-4 col-12">
+                    <div class="card border-left-danger mb-2 shadow py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-sm font-weight-bold text-success text-danger mb-1">Time until you
+                                        can vote with @threespeak's stake:
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        <table class="upvoteCountdown d-none table table-striped table-sm table-bordered">
+                                            <tr class="info ">
+                                                <td id="days">0</td>
+                                                <td id="hours">0</td>
+                                                <td id="minutes">0</td>
+                                                <td id="seconds">0</td>
+                                            </tr>
+                                            <tr class="">
+                                                <td>Days</td>
+                                                <td>Hours</td>
+                                                <td>Minutes</td>
+                                                <td>Seconds</td>
+                                            </tr>
+                                        </table>
+
+                                        <div id="proxyNotification" class="alert alert-success d-none"
+                                             style="font-size: large;">
+                                            <strong>Congratulations!</strong>
+                                            You are now able to upvote comments on your
+                                            videos using 3speak's stake, just upvote comments like normal and you will
+                                            be
+                                            given an option to upvote through us.
+                                            <br><br>
+                                            We expect you to let your followings from other platforms know about this
+                                            feature and bring them over to enjoy the benefits.
+                                            We also kindly ask that you <b>only</b> upvote <b>quality</b> comments and
+                                            <b>do not</b> self-vote.
+                                            <br><br>
+                                            Your limit for today is <b>${{ creator.limit }}!</b>
+                                            </b><br>
+                                            <br>You can view your most recent videos <a
+                                                    href="https://{{ APP_PAGE_DOMAIN }}/user/{{ creator.username }}">here</a>.
+                                            <br>If you don't have a recent video, <a href="/upload">upload one!</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-vote-yea fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="col-md-4 col-12 mt-md-0 mt-2">
+                <div class="card border-left-primary shadow py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Uploaded Videos
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ videoCount }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-video fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mt-md-0 mt-2">
+                <div class="card  border-left-success shadow py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Follower
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ subCount }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mt-md-0 mt-2">
+                <div class="card border-left-info shadow py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Views
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ viewCount }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-eye fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if creator.verificationRequired == true %}
+                <div class="col-md-4 col-12 mt-md-0 mt-2">
+                    <div class="card mt-2 border-left-{% if creator.verified == true %}success{% else %}danger{% endif %} shadow py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Account
+                                        Verification
+                                    </div>
+                                    {% if creator.verified != true %}
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {% if creator.awaitingVerification == true %}
+                                                Thank you for verifying with us. Please wait while we manually review your evidence.
+                                            {% else %}
+                                                <a href="/verification" class="btn btn-success">Get Verified!</a>
+
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-auto">
+                                    {% if creator.verified == true %}
+                                        <i class="fas fa-check fa-2x text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-times fa-2x text-{% if creator.awaitingVerification == true %}gray-300{% else %}danger{% endif %}"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            
+            <div class="col-md-12 col-sm-12 mt-4">
+                <div class="card border-left-success shadow py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">Claim Larynx Token
+                                </div>
+                                <div class="text-xs font-weight-bold text-primary mb-1">{{identity.username}} can claim {{larynxDetails.claimable}} LARYNX once per month
+                                </div>
+                                <div class="text-xs font-weight-bold text-primary mb-1">{{identity.username}} last claimed {{larynxDetails.last_claim}}
+                                </div>
+                                <div class="text-xs font-weight-bold text-primary mb-1">{{identity.username}} has claimed a total of {{larynxDetails.total_claims}} times
+                                </div>
+                                <div class="text-xs text-primary mb-1"><a href="/my-wallet">Click here to lock or send your LARYNX</a>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <a href="#" class="btn btn-primary" id="claimLarynxToken">Claim</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row" style="margin-top: 3%;">
+            <div class="col-lg-6 col-md-12 col-12">
+                <!-- Approach -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">News</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="3speak-widgets-blog">
+                            {% for content in speakSpkContent %}
+                            <div class="card" style="margin-top: 4%;">
+                                <div class="card-body">
+                                  <a href="https://hive.blog/{{ content.parent_permlink }}/@{{ content.author }}/{{ content.permlink }}" target="_blank" rel="noopener noreferrer"><h4>{{ content.title }}</h4></a>
+                                  <small class="text-right">author: {{ content.author }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-6 col-md-12 col-12">
+                <!-- Approach -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Twitter Feed</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="twitter-widgets-blog">
+                            <a class="twitter-timeline" href="https://twitter.com/3speakonline?ref_src=twsrc%5Etfw">Tweets by 3speakonline</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+    {% if promotion %}
+        <div class="modal fade" id="promotionModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">You've been selected for an upgrade!</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>We noticed that some of the content you upload would classify you as a citizen journalist.
+                            Citizen journalists get special treatment on 3speak, having their own section on the front
+                            page
+                            and receiving generally larger upvotes from us.
+
+                            To confirm your interest in becoming a citizen journalist, please agree to the terms below:
+
+                            <a href="https://drive.google.com/file/d/1Vkpd5THGHLehbqJBkNJxN4XTYcq8fBe0/">T&C's +
+                                journalists pledge.</a></p>
+
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" name="3CJ" value="jp">
+                                3Speak citizen journalist's pledge
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" name="3CJ" value="jc">
+                                Journalist's creed
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" class="form-check-input" name="3CJ" value="cjtc">
+                                Citizen Journalist's Terms and Conditions
+                            </label>
+                        </div>
+                        <p class="unfinishedFormWarning text-danger d-none">
+                            Please either check all boxes before proceeding or reject the terms.
+                        </p>
+                        <span class="form-group mt-4">
+                            <input type="submit" class="btn btn-success" value="Agree" onclick="journalistAgree(1)">
+                        </span>
+                        <span class="form-group mt-4">
+                            <input type="submit" class="btn btn-danger" value="Reject" onclick="journalistAgree(0)">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if askWitnessVotes == true %}
+        <div class="modal fade" id="witnessModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Hi @{{ creator.username }}</h5>
+                    </div>
+                    <div class="modal-body">
+                        We hope you enjoy using the 3Speak video platform. Did you know that you can support 3Speak by
+                        voting for our HIVE witness?
+                        <br>
+                        If you like 3Speak and want to support us please consider voting for our witness:
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success" onclick="witnessVoteGo()">Vote Now</button>
+                        <button data-dismiss="modal" aria-label="Close" class="btn btn-primary" value="">Remind me
+                            later
+                        </button>
+                        <button type="submit" class="btn btn-danger" value="Don't show this again"
+                                onclick="witnessVoteNo()">Don't show this again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if creator.warningPending %}
+        <div class="modal fade" id="warningModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Hi @{{ creator.username }}</h5>
+                    </div>
+                    <div class="modal-body">
+                        {{ creator.warningText }}
+
+                        <input type="submit" class="btn btn-success" value="Ok" onclick="warningRead()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <!-- /.container-fluid -->
+{% endblock %}
+{% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/steem/dist/steem.min.js"></script>
+    <script>
+        steem.api.setOptions({useAppbaseApi: true, url: '{{ HIVE_SECURE_NODE_PREFIX }}://{{ HIVE_DEFAULT_NODE }}'})
+    </script>
+    <script src="https://nico.network/steemit-widgets/steemit-widgets.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script>
+        steemitWidgets.blog({
+            element: 'steemit-widgets-blog',
+            user: 'threespeak',
+            limit: 100,
+            template: '<div style="border: 2px solid rgb(172, 191, 228); border-radius: 5px; font-family: Arial, Helvetica, sans-serif; margin-bottom: 15px;"><a href="${URL}" style="border-top-right-radius: 3px; border-top-left-radius: 3px; height: 250px; display: block; background-image: url(\'${IMAGE}\'); background-size: contain; background-repeat: no-repeat; background-position: center center;"></a> <h2 style="margin: 0px; font-size: 16px; text-align: left; line-height: 16px; padding: 7px 10px;"><!----> <a href="${URL}" style="color: rgb(68, 68, 68); text-decoration: none;">                        ${TITLE}                    </a></h2> <div style="font-size: 12px; color: rgb(136, 136, 136); padding: 0px 10px 5px; background: rgb(255, 255, 255); text-align: left;"><span>${DATE}</span> <span>by <a href="https://hive.blog/@${AUTHOR}" style="color: rgb(68, 68, 68); text-decoration: none;">${AUTHOR}</a></span> <span style="border: 1px solid rgb(204, 204, 204); border-radius: 10px; padding: 1px 4px; font-size: 11px;">${REPUTATION}</span> <span>in <a href="https://hive.blog/@${AUTHOR}" style="color: rgb(68, 68, 68); text-decoration: none;">${CATEGORY}</a></span></div> </div>',
+            resteemedIndicator: '<span style="width: 15px; height: 15px; display: inline-block;"><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"><path d="M448,192l-128,96v-64H128v128h248c4.4,0,8,3.6,8,8v48c0,4.4-3.6,8-8,8H72c-4.4,0-8-3.6-8-8V168c0-4.4,3.6-8,8-8h248V96 L448,192z"></path></svg></span>',
+            reputationPrecision: 1,
+            updateInterval: 60,
+            dateCallback: function (date) {
+                return moment.utc(date).from(moment.utc().format('YYYY-MM-DD HH:mm:ss'));
+            }
+        });
+
+        function journalistAgree(decision) {
+            let checkboxes = $('input[name=3CJ]');
+
+            console.log(decision)
+
+            if (decision === 1) {
+                for (let i = 0; i < checkboxes.length; i++) {
+                    console.log(checkboxes[i].value)
+                    if (!checkboxes[i].checked) {
+                        $('.unfinishedFormWarning').removeClass('d-none');
+                        return;
+                    }
+                }
+            }
+            $('#promotionModal').modal('hide');
+            $.ajax({
+                type: "post",
+                url: "/journalist-upgrade",
+                data: {agreed: decision},
+                success: (res) => {
+                    if (decision) {
+                        Swal.fire(
+                            'Yay!',
+                            "You've been upgraded to Citizen Journalist!\n Next time you upload citizen journalist type\
+                            content, check the 'is citizen journalism' checkbox.",
+                            'success'
+                        );
+                    }
+                }
+            })
+        }
+
+        function warningRead() {
+            console.log('pressed')
+            $.ajax({
+                type: "post",
+                url: "/warning-read",
+                data: {},
+                success: (res) => {
+                    $('#warningModal').modal('hide');
+                }
+            })
+        }
+
+        function witnessVoteGo() {
+            window.location.href = 'https://hivesigner.com/sign/account_witness_vote?approve=1&witness=threespeak'
+        }
+
+        function witnessVoteNo() {
+            $.ajax({
+                url: '/api/witness',
+                success: () => {
+                    window.location.reload();
+                }
+            })
+        }
+
+        function countdown(event) {
+            let now = new Date();
+
+            let currentTime = now.getTime();
+
+            let eventTime = event.getTime();
+
+            let remTime = eventTime - currentTime;
+
+            let s = Math.floor(remTime / 1000);
+            let m = Math.floor(s / 60);
+            let h = Math.floor(m / 60);
+            let d = Math.floor(h / 24);
+
+            h %= 24;
+            m %= 60;
+            s %= 60;
+
+            h = (h < 10) ? "0" + h : h;
+            m = (m < 10) ? "0" + m : m;
+            s = (s < 10) ? "0" + s : s;
+
+            $('#days').html(d);
+            $('#hours').html(h);
+            $('#minutes').html(m);
+            $('#seconds').html(s);
+
+            setTimeout(() => {
+                countdown(event)
+            }, 1000);
+        }
+
+        $(() => {
+            {% if promotion %}
+            $('#promotionModal').modal();
+            {% endif %}
+            {% if creator.warningPending %}
+            $('#warningModal').modal();
+            {% endif %}
+            {% if askWitnessVotes %}
+            $('#witnessModal').modal()
+            {% endif %}
+
+            $.ajax({
+                url: '/api/creator/vote/day',
+                type: 'post',
+                success: (res => {
+                    if (!res.error) {
+                        if (res.upvoteEnabled === true) {
+                            $('#proxyNotification').removeClass('d-none');
+                        } else {
+                            $('.upvoteCountdown').removeClass('d-none');
+                            countdown(new Date(res.date));
+                        }
+                    }
+                })
+            });
+        });
+
+    </script>
+    <script>
+        $('#claimLarynxToken').click(async function () {
+                const op = [
+                    "custom_json",
+                    {
+                    "required_auths": 0,
+                    "id": "spkcc_claim",
+                    "required_posting_auths": [
+                        "{{identity.username}}"
+                    ],
+                    "json": "{}"
+                    }
+                ]
+            if (window.hive_keychain) {
+                window. hive_keychain.requestBroadcast("{{identity.username}}", [op], 'Posting', function(response) {
+                    if (response.success) {
+                        window.location.reload()
+                    }
+                })
+            } else {
+                window.open('https://hivesigner.com/sign/custom-json?authority=posting&required_auths=0&id=spkcc_claim&json=%7B%22claim%22%3Atrue%7D')
+            }
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends 'layout.twig' %}
+
+{% block css %}
+    <style>
+        .remove:hover {
+            cursor: pointer;
+        }
+        .members-hide:hover {
+            cursor: pointer;
+        }
+        .videos-hide:hover {
+            cursor: pointer;
+        }
+        html, body {
+            max-width: 100vw;
+        }
+
+        table {
+            margin: auto;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+            width: fit-content;
+            max-width: 100%;
+            box-shadow: 0 0 1px 1px rgba(0, 0, 0, .1);
+        }
+
+        td, th {
+            border: solid rgb(200, 200, 200) 1px;
+            padding: .5rem;
+        }
+
+        th {
+            text-align: left;
+            background-color: rgb(190, 220, 250);
+            text-transform: uppercase;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: rgb(50, 50, 100) solid 2px;
+            border-top: none;
+        }
+
+        td {
+            white-space: nowrap;
+            border-bottom: none;
+            color: rgb(20, 20, 20);
+        }
+
+        td:first-of-type, th:first-of-type {
+            border-left: none;
+        }
+
+        td:last-of-type, th:last-of-type {
+            border-right: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <img src="{{ community.image }}" style="object-fit: cover; width: 100%; max-height: 400px;">
+    <div class="ml-4 mt-4">
+        <h1>{{ community.name }}</h1>
+        <p>{{ community.description }}</p>
+        <span>
+            <h3>Open community</h3>
+            <span>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="openSwitch"{% if community.open == true %} checked{% endif %}>
+                  <label class="custom-control-label" for="openSwitch">Opening the community means anyone can post
+                  to it, you can remove unwanted videos in the section below.</label>
+                </div>
+            </span>
+        </span>
+        <span>
+            <h3>Members</h3> (<a class="text-info members-hide" onclick="togglehide('members');">show</a>)
+        </span>
+        <span id="members" class="d-none">
+            <span class="float-right mr-4 mb-2">
+                <input type="text" id="creatorToAdd" class="mr-2"><button id="addCreator" class="btn btn-primary">+ Add creator</button>
+                <ul class="list-group"></ul>
+            </span>
+            <table class="table">
+                <thread>
+                    <tr>
+                        <th>Name</th>
+                        <th>Admin</th>
+                        <th>Creator</th>
+                        <th>Remove member</th>
+                    </tr>
+                </thread>
+                {% for member in members %}
+                    <tbody>
+                        <tr>
+                            <td>{{ member.username }}</td>
+                            <td>{% if member.isAdmin %}<i class="fas fa-check text-success"></i><!--{% endif %}--></td>
+                            <td>{% if member.isCreator %}<i class="fas fa-check text-success"></i>{% endif %}</td>
+                            <td>
+                                <div class="remove remove-member" data-username="{{ member.username }}">
+                                    <i class="fas fa-times text-danger"></i>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </span>
+
+        <span>
+            <h3>Videos</h3> (<a class="text-info videos-hide" onclick="togglehide('videos');">show</a>)
+        </span>
+        <span id="videos" class="d-none">
+            <table class="table">
+                <thread>
+                    <tr>
+                        <td>Title</td>
+                        <td>Owner</td>
+                        <td>Thumbnail</td>
+                        <td>Description</td>
+                        <td>Remove from community</td>
+                    </tr>
+                </thread>
+                {% for video in videos %}
+                    <tbody>
+                        <tr>
+                            <td><a href="https://{{ APP_PAGE_DOMAIN }}/watch?v={{ video.owner }}/{{ video.permlink }}">{{ video.title|slice(0, 40) }}{% if video.description|length > 30 %}...{% endif %}</a></td>
+                            <td><a href="https://{{ APP_PAGE_DOMAIN }}/user/{{ video.owner }}">{{ video.owner }}</a></td>
+                            <td>
+                                <img class="img-thumbnail" style="max-width: 130px"
+                                     src="https://v--03-eu-west.3speakcontent.online/{{ video.permlink }}/thumbnails/default.png"
+                                     alt="">
+                            </td>
+                            <td>{{ video.description|slice(0, 30) }}{% if video.description|length > 30 %}...{% endif %}</td>
+                            <td>
+                                <div class="remove remove-video" data-authorperm="{{ video.owner }}/{{ video.permlink }}">
+                                    <i class="fas fa-times text-danger"></i>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                {% endfor %}
+            </table>
+        </span>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        $('#creatorToAdd').keyup(function(event) {
+            if ($(this).val() === '') {
+                $('.list-group').html('');
+            } else {
+                $.ajax({
+                    url: "/api/creatorlist",
+                    type: "post",
+                    data: {text: $(this).val()},
+                    success: (res) => {
+                        $('.list-group').html('');
+                        for (let i = 0; i < res.names.length; i++) {
+                            $('.list-group').append("<li id='" + res.names[i] + "' class='list-group-item'>" + res.names[i] + "</li>")
+                        }
+                    }
+                })
+            }
+        });
+
+        function togglehide(element) {
+            let target = $('#' + element)
+            if (target.hasClass("d-none")) {
+                target.removeClass("d-none");
+                $('.' + element + '-hide').html("hide");
+            } else {
+                target.addClass("d-none");
+                $('.' + element + '-hide').html("show");
+            }
+        }
+
+        $(document).ready(function() {
+            $(document).on("click", "li.list-group-item", function() {
+                $('#creatorToAdd').val(this.id)
+                $('.list-group').html('');
+            });
+
+            $(document).on("click", "#addCreator", function() {
+                $.ajax({
+                    url: "/api/creatorlist",
+                    type: "post",
+                    data: {text: $("#creatorToAdd").val()},
+                    success: (res) => {
+                        if (res.names.length === 0) {
+                            Swal.fire("ERROR", "Creator does not exist")
+                        } else {
+                            $.ajax({
+                                url: "/communities/addCreator",
+                                type: "get",
+                                data: {
+                                    name: $("#creatorToAdd").val(),
+                                    community: "{{ community.name }}"
+                                },
+                                success: () => {
+                                    if (res.error) {
+                                        Swal.fire("ERROR", res.error);
+                                    } else {
+                                        location.reload()
+                                    }
+                                }
+                            })
+                        }
+                    }
+                })
+            });
+
+            $(document).on("click", ".remove", function() {
+                let remType = "member";
+                if ($(this).hasClass("remove-video")) {
+                    remType = "video";
+                }
+                $.ajax({
+                    url: "/communities/remove/" + remType,
+                    type: "post",
+                    data: {
+                        target: remType === "video" ? $(this).data('authorperm') : $(this).data("username"),
+                        community: "{{ community.code }}"
+                    },
+                    success: (res) => {
+                        if (res.error) {
+                            Swal.fire("ERROR", res.error);
+                        } else {
+                            location.reload()
+                        }
+                    }
+                })
+            })
+
+            $("#openSwitch").change( function() {
+                let checked = $(this).prop("checked");
+                console.log(checked)
+                if (checked === true) {
+                    $.ajax({
+                        url: "/api/community/open",
+                        type: "post",
+                        data: {
+                            communityName: "{{ community.name }}",
+                            open: true
+                        },
+                        success: (res) => {
+                            console.log(res);
+                            if (res.ok) {
+                                //$('#openSwitch').prop('checked', false);
+                            } else {
+                                Swal.fire("ERROR", res.error);
+                            }
+                        }
+                    })
+                } else if (checked == false) {
+                    $.ajax({
+                        url: "/api/community/open",
+                        type: "post",
+                        data: {
+                            communityName: "{{ community.name }}",
+                            open: false
+                        },
+                        success: (res) => {
+                            console.log(res)
+                            if (res.ok) {
+                                //$('#openSwitch').prop('checked', true);
+                            } else {
+                                Swal.fire("ERROR", res.error);
+                            }
+                        }
+                    })
+                }
+            })
+        });
+
+    </script>
+{% endblock %}

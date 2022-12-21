@@ -1,0 +1,325 @@
+{% extends 'layout.twig' %}
+
+{% block css %}
+  <link rel="stylesheet" href="/css/bootstrap-tagsinput.css">
+{% endblock %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h3 class="mb-0 text-gray-800 text-center">Custom Podcast Settings</h3>
+
+        </div>
+
+        <!-- Content Row -->
+
+        <div id="podcast_profile_form">
+
+          <div class="accordion" id="editDetailsPrompt">
+            <div class="card">
+              <div class="card-header" id="editDetailsHeader">
+                  <h6 class="text-left" type="button" data-toggle="collapse" data-target="#editDetailsForm" aria-expanded="false" aria-controls="editDetailsForm">
+                    Edit Podcast Details 
+                    <i class="fas fa-edit"></i>
+                  </h6>
+              </div>
+          
+              <div id="editDetailsForm" class="collapse" aria-labelledby="editDetailsHeader" data-parent="#editDetailsPrompt">
+                <div class="card-body">
+                  <form>
+                    <div class="form-group">
+                      <label for="podcast_title">Podcast Title</label>
+                      <input type="text" class="form-control" id="podcast_title" placeholder="Enter podcast title" value="{{ podcastTitle }}">
+                    </div>
+                    <div class="form-group">
+                      <label for="podcast_desc">Podcast Description</label>
+                      <textarea name='podcast_desc' class="form-control" id="podcast_desc">{{ podcastDescription }}</textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="thumbnail_pod">Thumbnail</label>
+                      <div>
+                          <img src="/img/default-thumbnail.jpg" style="max-width: 200px;cursor: pointer;" alt=""
+                               id="thumbnail_pod">
+                      </div>
+                      <small>Click the thumbnail to change it, the uploaded picture must be of equal dimensions, ideally 3000x3000 pixels</small>
+                      <input accept="image/*" type="file" id="thumbnail_input_pod" class="d-none">
+                      {#<small>Maximum 1MB. Ideally 1280px×720px.</small>#}
+                    </div>
+                    <div class="category-list">
+                      <p class="text-center"><b>Click to choose category(Max 3)</b></p>
+                      <select id="one-category" class="form-control mb-4">
+                          {% for category in initCategories %}
+                          <option value="{{ category.name }}" >{{ category.name }}</option>
+                          {% endfor %}
+                        </select>
+                        
+                    </div>
+                    <div class="form-group">
+                      <label for="categories">Categories</label>
+                      <input type="text" data-role="tagsinput" class="form-control category-text" id="categories" aria-describedby="categoryHelp" value="{{ initCategoriesString }}">
+                      <small id="categoryHelp" class="form-text text-muted">Separate each category with a comma</small>
+                    </div>  
+                    <div class="language-list">
+                      <p class="text-center"><b>Click to choose language(Max 1)</b></p>
+                        
+                      <select id="one-language" class="form-control mb-4">
+                          {% for language in initLanguages %}
+                          
+                          <option  data-code="{{ language.code }}" value="{{ language.name }}">{{ language.name }} {{ language.code }}</option>
+                          {% endfor %}
+                        </select>
+                        
+                    </div>
+                    <div class="form-group">
+                      <label for="languages">Languages</label>
+                      <input type="text" data-role="tagsinput" class="form-control language-text" id="languages" aria-describedby="languageHelp" value="{{ initLanguagesString }}">
+                      <small id="languageHelp" class="form-text text-muted">Separate each language with a comma</small>
+                    </div>
+                    <a href="javascript:void(0)" class="btn btn-primary" id="send_profile_data">Submit</a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+
+        <hr>
+        <h5 class="text-center">Podcast Details</h5><br>
+        <div class="list-group">
+            <a href="javascript:void(0)" class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: default;">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">Podcast Title</h6>
+              </div>
+              <section class="mb-1">
+                <p id="podcast-title">{{ podcastTitle }}</p>
+              </section>
+            </a>
+        </div>
+
+        <hr>
+
+
+        <div class="list-group">
+            <a href="javascript:void(0)" class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: default;">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">Podcast Description</h6>
+              </div>
+              <section class="mb-1">
+                <p id="podcast-description">{{ podcastDescription }}</p>
+              </section>
+            </a>
+        </div>
+
+        <hr>
+
+        
+        <div class="list-group">
+            <a href="javascript:void(0)" class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: default;">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">Podcast Thumbnail</h6>
+              </div>
+              <section class="mb-1">
+                {% if podcastImage == 'None available' %}<p id="podcast-image">{{ podcastImage }}</p>{% else %}<img src="{{ podcastImage }}" id="podcast-image" width="150px" height="150px">{% endif %}
+                
+                  
+              </section>
+            </a>
+        </div>
+
+        <hr>
+
+        <div class="accordion" id="podCatPrompt">
+          <div class="card">
+            <div class="card-header" id="podCatHeading">
+                <h5 class="text-left podcast-categories" type="button" data-toggle="collapse" data-target="#podCatOpen" aria-expanded="true" aria-controls="podCatOpen">
+                  Categories 
+                  <i class="fas fa-caret-down"></i>
+                </h5>
+            </div>
+        
+            <div id="podCatOpen" class="collapse" aria-labelledby="podCatHeading" data-parent="#podCatPrompt">
+              <div class="card-body">
+                <ul class="list-group">
+                  {% if podcastCategories.length > 0 %}
+                    {% for category in podcastCategories %}
+                        <li class="one-cat list-group-item">{{ category }}</li>
+                    {% endfor %}
+                  {% endif %}
+                  {% if podcastCategories.length == 0 %}
+                      <li class="one-cat list-group-item">You have not added any categories yet</li>
+                  {% endif %} 
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+
+        <hr>
+
+
+        <div class="accordion" id="podLangPrompt">
+          <div class="card">
+            <div class="card-header" id="podLangHeading">
+              <h5 class="text-left podcast-languages" data-toggle="collapse" type="button" data-target="#podLangOpen" aria-expanded="true" aria-controls="podLangOpen">
+                Languages
+                <i class="fas fa-caret-down"></i> 
+              </h5>
+            </div>
+        
+            <div id="podLangOpen" class="collapse" aria-labelledby="podLangHeading" data-parent="#podLangPrompt">
+              <div class="card-body">
+                <ul class="list-group">
+                  {% if podcastLanguages.length > 0 %}
+                      {% for language in podcastLanguages %}
+                          <li class="one-lan list-group-item">{{ language }}</li>
+                      {% endfor %}
+                  {% endif %}
+                  {% if podcastLanguages.length == 0 %}
+                      <li class="one-lan list-group-item">You have not added any languages yet</li>
+                  {% endif %}    
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </div>
+{% endblock %}
+    
+
+    <!-- /.container-fluid -->
+
+{% block js %}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@1.0.13/dist/browser-image-compression.js"></script>
+    <script src="/js/bootstrap-tagsinput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/min/dropzone.min.js"></script>
+    <script>
+      $('.category-text').tagsinput({
+        maxTags: 3
+      });
+      $('.language-text').tagsinput({
+        displayKey: 'text',
+        valueKey: 'id',
+        itemValue: 'text',
+        maxTags: 1,
+      });
+
+      $('#send_profile_data').click(async function() {
+        toastr["success"](`Operation in progress, hold on`);
+        const podcast_title = $('#podcast_title').val();
+        const podcast_desc = $('#podcast_desc').val();
+        const categories = $("#categories").tagsinput('items')
+        const languages = $("#languages").tagsinput('items')
+        const pwdHs = $('#input_ax').val();
+        let podcast_image = $('#thumbnail_pod').attr("src");
+        
+        if (podcast_image.length == 0) {
+          podcast_image = '{{ podcastImage }}'
+        }
+
+        //let thumbnailInit = {image: }
+
+        let thumbnail = $('#thumbnail_input_pod').prop('files')[0]
+
+        /*for (var key in thumbnailInit) {
+          thumbnail.append(key, thumbnail[key])
+        }*/
+
+        console.log(thumbnail)
+
+        const data = {
+          podcast_title,
+          podcast_desc,
+          categories,
+          languages,
+          podcast_image,
+          thumbnail
+        }
+
+        let formData = new FormData();
+
+        for ( var key in data ) {
+          if(key === "languages") {
+            let out = []
+            for(let item of data[key]) {
+              out.push(item.id)
+            }
+            formData.append(key, out);
+          } else {
+            formData.append(key, data[key]);
+          }
+        }
+
+        
+
+        const sendData = await axios.post('/api/update_podcast_settings', formData);
+
+        console.log(sendData)
+
+        /*if (sendData.data.message === 'success') {
+          toastr["success"](`Podcast settings saved successfully`);
+          setTimeout(function () {
+            window.location.reload()
+          }, 3000)
+        }
+
+        if (sendData.data.message === 'failed') {
+          return toastr["error"](`Error saving podcast settings, you can try again in an hour`);
+        }*/
+          
+      })
+
+    </script>
+    <script>
+      
+      $(document).on('change', '#one-category', function(val) {
+        console.log(val)
+        if ($("#categories").tagsinput('items').length < 3) {
+          $("#categories").tagsinput('add', val.target.value);
+          return toastr["success"](`${val.target.value} has been added to list of categories`);
+        } else {
+          return toastr["error"](`You cannot add more than three categories`);
+        }
+      })  
+    </script>
+    <script>
+
+      $(document).on('change', '#one-language', function(val) {
+        if ($("#languages").tagsinput('items').length == 1) {
+          return toastr["error"](`You cannot add more than one language`);
+        } else {
+          for(let child of val.target.children) {
+            if(child.value === val.target.value) {
+              $("#languages").tagsinput('add', {id: child.getAttribute("data-code"), text: val.target.value});
+            }
+          }
+          return toastr["success"](`${val.target.name} has been added as default language`);
+        }
+      })
+    </script>
+
+    <script>
+    
+      $('#thumbnail_pod').click(() => {
+          $('#thumbnail_input_pod').click();
+      });
+      $('#thumbnail_input_pod').on("change", ((e) => {
+          var options = {
+            maxSizeMB: 0.512,
+            useWebWorker: true
+          }
+          imageCompression(e.target.files[0], options).then(compressedFile => {
+            $('#thumbnail_pod').attr("src", URL.createObjectURL(compressedFile))
+            document.getElementById('thumbnail_pod').style.width = '200px';
+            document.getElementById('thumbnail_pod').style.height = '200px';
+          })
+      }));
+    </script>
+{% endblock %}

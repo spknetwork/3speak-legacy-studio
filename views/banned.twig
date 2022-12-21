@@ -1,0 +1,31 @@
+{% extends 'layout.twig' %}
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Access Denied</h1>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col">
+                <p class="alert alert-danger">
+                    You can not {% if verificationRequired %}upload{% else %}access the 3Speak Creator Studio{% endif %} at the moment. <br>
+                    Reason: <kbd>{{ banReason }}</kbd>
+                </p>
+
+                {% if verificationRequired == true %}
+                <a href="/verification" class="btn btn-primary">Get Verified!</a>
+                {% else %}
+                <a href="https://{{ APP_PAGE_DOMAIN }}/?utm_source=studio_banned" class="btn btn-primary">Go back to 3Speak.tv</a>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+{% endblock %}

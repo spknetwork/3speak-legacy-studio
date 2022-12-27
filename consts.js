@@ -1,4 +1,4 @@
-const { config } = require("./config/index.js");
+import { config } from "./config/index.js"
 
 const AUTH = {
     app: config.acct,

@@ -1,5 +1,5 @@
 //import 'dotenv/config'
-const { config } = require("./config/index.js");
+import { config } from "./config/index.js";
 
 global.APP_PAGE_DOMAIN = config.host || '3speak.tv';
 global.APP_LIVE_DOMAIN = `live.${config.appPageDomain}`;
@@ -38,7 +38,7 @@ global.APP_MEMCACHED_HOST = '127.0.0.1';
 global.APP_MONGO_HOST = process.env.MONGO_HOST || 'localhost:27018';
 global.APP_REDDITMQ_HOST = 'amqp://manager:manager@localhost'
 
-global.AUTH_API_REDIRECT_URL = process.env.ENV === 'dev' ? 'http://localhost:13050/login' : `https://${APP_STUDIO_DOMAIN}/login`;
+global.AUTH_API_REDIRECT_URL = process.env.ENV === 'dev' ? 'http://localhost:13050/login' : `https://studio.3speak.tv/login`;
 global.AUTH_API_URL = `https://auth.${APP_PAGE_DOMAIN}`
 
 global.AWS_REGION = 'eu-west-1'

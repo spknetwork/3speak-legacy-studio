@@ -1,4 +1,4 @@
-const { config } = require("../config/index.js");
+import { config } from "../config/index.js"
 import rateLimit from 'express-rate-limit';
 import express from 'express';
 var router = express.Router();
@@ -13,8 +13,8 @@ import AWS from 'aws-sdk';
 import paymentHelper from '../payment_helper/calculateUploadedTime.js';
 import timePriceHelper from '../payment_helper/calculateCostByLength.js';
 import langdetect from 'langdetect';
-const ep = new AWS.Endpoint(WASABI_ENDPOINT);
-import config from './../consts.js';
+const ep = new AWS.Endpoint(process.env.WASABI_ENDPOINT);
+import consts  from './../consts.js';
 import xss from 'xss';
 import ipfsCluster from 'ipfs-cluster-api';
 import FormData from 'form-data'
@@ -65,9 +65,9 @@ did.authenticate().then(() => console.log(did.id));
 const s3 = new AWS.S3({
     endpoint: ep,
     signatureVersion: 'v4',
-    accessKeyId: WASABI_ACCESS_KEY_ID,
-    secretAccessKey: WASABI_SECRET_KEY,
-    region: WASABI_REGION
+    accessKeyId: process.env.WASABI_ACCESS_KEY_ID,
+    secretAccessKey: process.env.WASABI_SECRET_KEY,
+    region: process.env.WASABI_REGION
 });
 
 const admins = [
@@ -1182,7 +1182,7 @@ router.post("/api/upload/prepare", middleware.requireLogin, middleware.requireId
             }
         } else {
             upload_type = 's3'
-            const myBucket = WASABI_BUCKET;
+            const myBucket = process.env.WASABI_BUCKET;
             const signedUrlExpireSeconds = 60 * 6 * 72;
             url = s3.getSignedUrl('putObject', {
                 Bucket: myBucket,
@@ -1253,13 +1253,13 @@ router.get("/login", (req, res) => {
     const { access_token = null } = req.query;
     if (!req.session.user && access_token === null) {
 
-        return res.redirect(AUTH_API_URL + '?redirect_url=' + AUTH_API_REDIRECT_URL + '&client_id=' + config.AUTH_API_CLIENT_ID)
+        return res.redirect(AUTH_API_URL + '?redirect_url=' + AUTH_API_REDIRECT_URL + '&client_id=' + consts.AUTH_API_CLIENT_ID)
 
     } else {
 
         if (access_token !== null) {
             try {
-                const userProfile = jwt.verify(access_token, config.AUTH_JWT_SECRET)
+                const userProfile = jwt.verify(access_token, consts.AUTH_JWT_SECRET)
                 console.log(userProfile)
                 req.session.user = userProfile
                 return res.redirect('/dashboard')

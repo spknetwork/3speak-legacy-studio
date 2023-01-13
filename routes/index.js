@@ -1,4 +1,5 @@
-import { config } from "../config/index.js"
+// import { config } from "../config/index.js"
+import config from "../config/index.js";
 import rateLimit from 'express-rate-limit';
 import express from 'express';
 var router = express.Router();
@@ -56,7 +57,6 @@ if(process.env.ENV === "dev") {
 
 
 console.log(DID)
-
 let key = new Ed25519Provider(Buffer.from(config.appEncoderPrivate, 'base64'))
 const did = new DID({ provider: key, resolver: KeyResolver.getResolver() })
 did.authenticate().then(() => console.log(did.id));

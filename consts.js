@@ -21,6 +21,7 @@ const HIVE_PRIVATE_KEY = config.privKey;
 const HIVE_PUBLIC_KEY = config.pubKey;
 const APP_TUS_ENDPOINT = "https://uploads.3speak.tv/files";
 const TUS_UPLOAD_PATH = process.env.TUS_UPLOAD_PATH;
+const MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY = config.mobileAppKeychainBasedSessionPublicKey;
 
 export default {
     AUTH,
@@ -32,5 +33,6 @@ export default {
     HIVE_PRIVATE_KEY,
     HIVE_PUBLIC_KEY,
     APP_TUS_ENDPOINT,
-    TUS_UPLOAD_PATH
+    TUS_UPLOAD_PATH,
+    MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY
 };

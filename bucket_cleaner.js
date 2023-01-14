@@ -1,5 +1,5 @@
 require('./page_conf');
-const { config } = require("./config/index.js");
+import config from "./config/index.js";
 let CLEANABLE = [];
 let CONTINUATION_TOKEN = null;
 let FILES = {}

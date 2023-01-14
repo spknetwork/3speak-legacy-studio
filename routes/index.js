@@ -90,7 +90,7 @@ const cloudfront = new AWS.CloudFront({
 });
 import md5 from 'md5';
 import randomstring from 'randomstring';
-const api = sc.Initialize(config.AUTH);
+// const api = sc.Initialize(config.AUTH);
 import uniqueSlug from 'unique-slug';
 import slug from 'slug';
 import hive from '@hiveio/hive-js';

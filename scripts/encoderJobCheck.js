@@ -11,7 +11,7 @@ void (async () => {
     const videos = await mongoDB.Video.find({
         status: 'encoding_ipfs'
     })
-    console.log(videos)
+    // console.log(videos)
     for(let video of videos) {
         const {data:jobInfo} = await Axios.get(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`)
         const {job} = jobInfo;
@@ -27,11 +27,15 @@ void (async () => {
                 let beneficiaries = JSON.parse(video.beneficiaries) // it has to be `let` to be modifiable
                 if(node_info.cryptoAccounts) {
                     if(node_info.cryptoAccounts.hive) {
-                        beneficiaries.push({
-                            account: node_info.cryptoAccounts.hive,
-                            weight: 100,
-                            src: 'ENCODER_PAY'
-                        })
+                        if(!beneficiaries.find(e => {
+                            return e.src === "ENCODER_PAY"
+                        })) {
+                            beneficiaries.push({
+                                account: node_info.cryptoAccounts.hive,
+                                weight: 100,
+                                src: 'ENCODER_PAY'
+                            })
+                        }
                         if (video.fromMobile) {
                             beneficiaries.push({
                                 account: 'sagarkothari88',
@@ -60,8 +64,9 @@ void (async () => {
             if (video.fromMobile) {
                 video.status = 'publish_manual';
             }
-            video.created = Date.now()
+            video.created = new Date(job.created_at)
             video.video_v2 = `ipfs://${job.result.cid}/manifest.m3u8`;
+            video.needsHiveUpdate = true
             console.log(video)
             await video.save()
         }

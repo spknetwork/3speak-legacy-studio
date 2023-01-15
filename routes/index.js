@@ -879,7 +879,23 @@ router.post("/api/video/queue", middleware.requireLogin, middleware.checkPayment
             thumbnail: video.thumbnail
         })
 
-        if(thumbnailCount > 5) {
+        let allowedByRep = false
+        try {
+            
+            const data = await client.database.getAccounts([user])
+            
+            const rep = repLog10(data[0].reputation)
+
+            if(rep > 30) {
+                allowedByRep = true
+            }
+            
+        } catch {
+
+        }
+
+        
+        if(thumbnailCount > 5 && !allowedByRep) {
             return res.send({ "status": "FAIL" })
         }
 

@@ -21,7 +21,7 @@ let cluster;
 if (process.env.ENV === "dev") {
   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
     headers: {
-      
+      Authorization: process.env.IPFS_CLUSTER_AUTH
     },
   });
 } else {

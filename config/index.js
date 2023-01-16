@@ -1,8 +1,8 @@
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config();
-  // variablename: process.env.ENV_NAME_HERE
-   
-export const config = {
+// variablename: process.env.ENV_NAME_HERE
+
+export default {
   env: process.env.ENV,
   protocol: process.env.PROTOCOL,
   acct: process.env.ACCT,
@@ -14,7 +14,7 @@ export const config = {
   authWifMemo: process.env.AUTH_WIF_MEMO,
   authPubMemo: process.env.AUTH_PUB_MEMO,
   host: process.env.HOST,
-  port:  process.env.PORT,
+  port: process.env.PORT,
   hot: process.env.HIVE_ONBOARD_TOKEN,
   authApiClientId: process.env.AUTH_API_CLIENT_ID,
   authJwtSecret: process.env.AUTH_JWT_SECRET,

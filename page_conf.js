@@ -1,5 +1,6 @@
 //import 'dotenv/config'
-import { config } from "./config/index.js";
+// import { config } from "./config/index.js";
+import config from "./config/index.js";
 
 global.APP_PAGE_DOMAIN = config.host || '3speak.tv';
 global.APP_LIVE_DOMAIN = `live.${config.appPageDomain}`;

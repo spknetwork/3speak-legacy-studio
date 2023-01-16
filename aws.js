@@ -1,5 +1,7 @@
 import AWS from 'aws-sdk';
-const { config } = require("./config/index.js");
+// const { config } = require("./config/index.js");
+import config from "./config/index.js";
+
 
 const SQS = new AWS.SQS({
     accessKeyId: config.awsAccessKeyId,

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-const { config } = require("../config/index.js");
+// const { config } = require("../config/index.js");
+import config from "../config/index.js";
 /**
  * Module dependencies.
  */

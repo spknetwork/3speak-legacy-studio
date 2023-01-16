@@ -1,4 +1,4 @@
-const { config } = require("./config/index.js");
+import config  from "./config/index.js";
 import createError from 'http-errors';
 import express from 'express';
 import path from 'path';

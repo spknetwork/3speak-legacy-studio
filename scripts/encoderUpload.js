@@ -21,6 +21,10 @@ const { DID } = DIDImport;
 
 Object.assign(global, { fetch, File, Blob, FormData })
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 let cluster;
 if(process.env.ENV === "dev") {
     cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
@@ -60,31 +64,47 @@ void (async () => {
         return console.log({ "status": "FAIL" })
     }
     if (video.upload_type === "ipfs") {
-        const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
-            replicationFactorMin: 1,
-            replicationFactorMax: 2
-        })
-        const { data } = await Axios.post(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/pushJob`, {
-            jws: await did.createJWS({
-                url: `${global.APP_IPFS_GATEWAY_ENCODER}/ipfs/${cid.toString()}`,
-                metadata: {
-                    video_owner: video.owner,
-                    video_permlink: video.permlink
-                },
-                storageMetadata: {
-                    key: `${video.owner}/${video.permlink}/video`,
-                    type: 'video',
-                    app: "3speak"
-                }
+        let success = false;
+        for(let x = 0; x < 10; x++) {
+            const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
+                replicationFactorMin: 1,
+                replicationFactorMax: 2
             })
-        })
-        console.log(data)
-        video.filename = `ipfs://${cid.toString()}`
-        video.status = "encoding_ipfs";
-        video.created = Date.now();
-        video.job_id = data.id
-        await video.save();
-        fs.unlinkSync(fsPath)
+            try {
+                const { data } = await Axios.post(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/pushJob`, {
+                    jws: await did.createJWS({
+                        url: `${global.APP_IPFS_GATEWAY_ENCODER}/ipfs/${cid.toString()}`,
+                        metadata: {
+                            video_owner: video.owner,
+                            video_permlink: video.permlink
+                        },
+                        storageMetadata: {
+                            key: `${video.owner}/${video.permlink}/video`,
+                            type: 'video',
+                            app: "3speak"
+                        }
+                    })
+                })
+                console.log(data)
+                video.filename = `ipfs://${cid.toString()}`
+                video.status = "encoding_ipfs";
+                video.created = Date.now();
+                video.job_id = data.id
+                await video.save();
+                success = true;
+                
+                fs.unlinkSync(fsPath)
+                break;
+            } catch {
+
+            }
+            
+            await sleep(x * 15_000)
+        }
+        if(success !== true) {
+            video.status = "encoding_failed";
+            await video.save();
+        }
     }
     process.exit(0)
 })()

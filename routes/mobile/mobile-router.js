@@ -51,7 +51,7 @@ router.get("/login", async (req, res) => {
         // it will be used for hive-keychain-based-sessions on mobile-client
         publicKey = config.MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY;
       } else {
-        res.status(500).send({ error: `Unsupported client found in the request.` });
+        return res.status(500).send({ error: `Unsupported client found in the request.` });
       }
       var dataToSign = { user_id: username, network: "hive", banned: false };
       var token = jwt.sign(dataToSign, config.AUTH_JWT_SECRET, {

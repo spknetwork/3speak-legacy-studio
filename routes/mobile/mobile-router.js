@@ -34,7 +34,7 @@ router.get("/login", async (req, res) => {
     const { username = null } = req.query;
     const { client = null } = req.query;
     if (username == null) {
-      res.status(500).json({
+      return res.status(500).json({
         error: "Please provide username.",
       });
     }
@@ -66,7 +66,7 @@ router.get("/login", async (req, res) => {
       console.log("==================");
       console.log(`encryptedToken is ${encryptedToken}`);
       console.log("==================");
-      res.send({
+      return res.send({
         memo: encryptedToken,
       });
     } else {
@@ -80,7 +80,7 @@ router.get("/login", async (req, res) => {
           delete newUserProfile["exp"];
           return res.send(newUserProfile);
         } catch (e) {
-          res.status(500).send({ error: `Error is ${e.toString()}` });
+          return res.status(500).send({ error: `Error is ${e.toString()}` });
         }
       } else {
         if (req.session.user) {
@@ -95,7 +95,7 @@ router.get("/login", async (req, res) => {
             return res.send(newUserProfile);
           }
         } else {
-          res.status(500).send({ error: `Unknown error.` });
+          return res.status(500).send({ error: `Unknown error.` });
         }
       }
     }
@@ -104,7 +104,7 @@ router.get("/login", async (req, res) => {
       error: e.toString(),
     });
     console.log(e);
-    res.status(500).send({ error: `Error is ${e.toString()}` });
+    return res.status(500).send({ error: `Error is ${e.toString()}` });
   }
 });
 
@@ -187,7 +187,7 @@ router.post(
         username: req.session.user.user_id,
       });
       console.log(e);
-      res.status(500).send({ error: `Error is ${e.toString()}` });
+      return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }
 );
@@ -404,7 +404,7 @@ router.post(
         video.steemPosted = true;
         video.status = "published";
         await video.save();
-        res.send({ success: true, data: video });
+        return res.send({ success: true, data: video });
       } else {
         // Marking video as failed because user didn't add necessary beneficiaries to the video-post on hive chain.
         video.status = "encoding_failed";

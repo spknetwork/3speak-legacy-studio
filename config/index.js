@@ -40,4 +40,5 @@ export default {
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretKey: process.env.AWS_SECRET_KEY,
   authSessionSecret: process.env.AUTH_SESSION_SECRET,
+  mobileAppKeychainBasedSessionPublicKey: process.env.MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY,
 };

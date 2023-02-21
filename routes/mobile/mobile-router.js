@@ -21,7 +21,7 @@ let cluster;
 if (process.env.ENV === "dev") {
   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
     headers: {
-      
+      Authorization: process.env.IPFS_CLUSTER_AUTH
     },
   });
 } else {
@@ -32,15 +32,27 @@ router.get("/login", async (req, res) => {
   try {
     const { access_token = null } = req.query;
     const { username = null } = req.query;
+    const { client = null } = req.query;
     if (username == null) {
-      res.status(500).json({
+      return res.status(500).json({
         error: "Please provide username.",
       });
     }
 
     if (!req.session.user && access_token === null) {
-      const [account] = await hive.api.getAccountsAsync([username]);
-      var publicKey = account.posting.key_auths[0][0];
+      let publicKey = null;
+      if (client === null) {
+        const [account] = await hive.api.getAccountsAsync([username]);
+        publicKey = account.posting.key_auths[0][0];
+        // instead simple string comparison, we'll have an array of clients along with the public key provided by them
+        // for their trusted clients. once we have those in place, we will update this code.
+      } else if (client == "mobile") {
+        // mobile client will have private key of following public key. with it, mobile-client will be able to decrypt it
+        // it will be used for hive-keychain-based-sessions on mobile-client
+        publicKey = config.MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY;
+      } else {
+        return res.status(500).send({ error: `Unsupported client found in the request.` });
+      }
       var dataToSign = { user_id: username, network: "hive", banned: false };
       var token = jwt.sign(dataToSign, config.AUTH_JWT_SECRET, {
         expiresIn: "30d",
@@ -54,7 +66,7 @@ router.get("/login", async (req, res) => {
       console.log("==================");
       console.log(`encryptedToken is ${encryptedToken}`);
       console.log("==================");
-      res.send({
+      return res.send({
         memo: encryptedToken,
       });
     } else {
@@ -68,7 +80,7 @@ router.get("/login", async (req, res) => {
           delete newUserProfile["exp"];
           return res.send(newUserProfile);
         } catch (e) {
-          res.status(500).send({ error: `Error is ${e.toString()}` });
+          return res.status(500).send({ error: `Error is ${e.toString()}` });
         }
       } else {
         if (req.session.user) {
@@ -83,7 +95,7 @@ router.get("/login", async (req, res) => {
             return res.send(newUserProfile);
           }
         } else {
-          res.status(500).send({ error: `Unknown error.` });
+          return res.status(500).send({ error: `Unknown error.` });
         }
       }
     }
@@ -92,7 +104,7 @@ router.get("/login", async (req, res) => {
       error: e.toString(),
     });
     console.log(e);
-    res.status(500).send({ error: `Error is ${e.toString()}` });
+    return res.status(500).send({ error: `Error is ${e.toString()}` });
   }
 });
 
@@ -175,7 +187,7 @@ router.post(
         username: req.session.user.user_id,
       });
       console.log(e);
-      res.status(500).send({ error: `Error is ${e.toString()}` });
+      return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }
 );
@@ -392,7 +404,7 @@ router.post(
         video.steemPosted = true;
         video.status = "published";
         await video.save();
-        res.send({ success: true, data: video });
+        return res.send({ success: true, data: video });
       } else {
         // Marking video as failed because user didn't add necessary beneficiaries to the video-post on hive chain.
         video.status = "encoding_failed";

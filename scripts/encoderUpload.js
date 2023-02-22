@@ -1,4 +1,4 @@
-import { config } from "../config/index.js";
+import config from "../config/index.js";
 import Ed25519ProviderImport from "key-did-provider-ed25519";
 import Crypto from 'crypto'
 import KeyResolver from 'key-did-resolver'

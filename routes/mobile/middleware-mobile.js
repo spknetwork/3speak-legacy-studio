@@ -38,7 +38,9 @@ async function requireMobileLogin(req, res, next) {
     }
     next();
   } else {
-    res.redirect("/login-mobile");
+    const reason =
+      "No user info found in the request. Please use /login API & attach userid to each request.";
+    return res.status(500).send({ error: reason });
   }
 }
 

@@ -134,6 +134,8 @@ router.post(
       video.title = text;
       video.description = text;
       video.local_filename = req.body.filename;
+      video.parent_author = req.body.parent_author;
+      video.parent_permlink = req.body.parent_permlink;
       if (req.body.isReel !== undefined && req.body.isReel === true) {
         video.isReel = true;
       }

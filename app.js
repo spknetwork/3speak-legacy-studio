@@ -12,7 +12,7 @@ import md5 from 'md5';
 import spkHelper from './spkHelper.js';
 import Sentry from '@sentry/node';
 import mongoDB from './mongoDB.js';
-
+import cors from 'cors'; 
 
 import indexRouter from './routes/index.js';
 import mobileRouter from './routes/mobile/mobile-router.js';
@@ -23,8 +23,15 @@ const MongoStore = MongoStoreFactory(session);
 Sentry.init({dsn: APP_SENTRY_DSN});
 
 var app = express();
+
+app.use(cors({credentials: true}));
+
 app.use((req, res, next) => {
     res.locals = Object.assign(res.locals, global);
+    // res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+    // res.setHeader('Access-Control-Allow-Origin','*');
+    // res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS'); 
+    // res.setHeader('Access-Control-Allow-Headers', '*'); 
     next();
 })
 app.set('trust proxy', true)

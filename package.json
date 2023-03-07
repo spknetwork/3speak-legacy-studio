@@ -24,6 +24,7 @@
     "base58-js": "^1.0.4",
     "connect-mongo": "^2.0.3",
     "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "crypto-price": "0.0.6",
     "debug": "^2.6.9",
     "dids": "^2.4.3",

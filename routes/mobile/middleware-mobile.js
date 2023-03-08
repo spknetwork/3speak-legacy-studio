@@ -1,11 +1,17 @@
 import mongoDB from "../../mongoDB.js";
 import hive from "@hiveio/hive-js";
+import config from "../../consts.js";
 hive.api.setOptions({ useAppbaseApi: true, url: "http://api.hive.blog" });
 
 async function requireMobileLogin(req, res, next) {
-  if (req.session.user) {
+  let user = req.session.user;
+  if (user === null || user === undefined) {
+    const token = req.headers['authorization'].replace("Bearer ", "");
+    user = jwt.verify(token, config.AUTH_JWT_SECRET);
+  }
+  if (user) {
     let mobileUser = await mongoDB.MobileUser.findOne({
-      user_id: req.session.user.user_id,
+      user_id: user.user_id,
     });
     if (mobileUser !== null && mobileUser.banned === true) {
       const banReason =
@@ -14,7 +20,7 @@ async function requireMobileLogin(req, res, next) {
     }
 
     let contentCreator = await mongoDB.ContentCreator.findOne({
-      username: req.session.user.user_id,
+      username: user.user_id,
     });
 
     if (contentCreator !== null && contentCreator.banned === true) {
@@ -25,14 +31,14 @@ async function requireMobileLogin(req, res, next) {
 
     if (mobileUser === null) {
       const mUser = new mongoDB.MobileUser({
-        user_id: req.session.user.user_id,
+        user_id: user.user_id,
       });
       await mUser.save();
     }
 
     if (contentCreator === null) {
       const cCreator = new mongoDB.ContentCreator({
-        username: req.session.user.user_id,
+        username: user.user_id,
       });
       await cCreator.save();
     }

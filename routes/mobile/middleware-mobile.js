@@ -8,7 +8,11 @@ async function requireMobileLogin(req, res, next) {
   let user = req.session.user;
   if (user === null || user === undefined) {
     const token = req.headers['authorization'].replace("Bearer ", "");
-    user = jwt.verify(token, config.AUTH_JWT_SECRET);
+    try {
+      user = jwt.verify(token, config.AUTH_JWT_SECRET);
+    } catch (e) {
+      console.error(`Error verifying token: ${token}`);
+    }
   }
   if (user) {
     let mobileUser = await mongoDB.MobileUser.findOne({

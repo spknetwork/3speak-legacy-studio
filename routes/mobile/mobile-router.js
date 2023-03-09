@@ -32,7 +32,11 @@ function getUserFromRequest(req) {
   let user = req.session.user;
   if (user === null || user === undefined) {
     const token = req.headers['authorization'].replace("Bearer ", "");
-    user = jwt.verify(token, config.AUTH_JWT_SECRET);
+    try {
+      user = jwt.verify(token, config.AUTH_JWT_SECRET);
+    } catch (e) {
+      console.error(`Error verifying token: ${token}`);
+    }
   }
   return user;
 }
@@ -119,6 +123,9 @@ router.post(
   middleware.requireMobileLogin,
   async (req, res) => {
     let user = getUserFromRequest(req);
+    if (user === undefined || user === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
     try {
       let video = new mongoDB.Video();
       let videoCount = await mongoDB.Video.countDocuments({
@@ -204,6 +211,9 @@ router.post(
   middleware.requireMobileLogin,
   async (req, res) => {
     let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
     const user = userObject.user_id;
     const videoId = req.body.videoId;
     let videoEntry = await mongoDB.Video.findOne({ owner: user, _id: videoId });
@@ -251,6 +261,9 @@ router.post(
   middleware.requireMobileLogin,
   async (req, res) => {
     let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
     const user = userObject.user_id;
     const videoId = req.body.videoId;
     if (videoId === undefined) {
@@ -291,6 +304,9 @@ router.get(
   middleware.requireMobileLogin,
   async (req, res) => {
     let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
     const user = userObject.user_id;
     let query = { owner: user };
 
@@ -392,6 +408,9 @@ router.post(
   middleware.requireMobileLogin,
   async (req, res) => {
     let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
     const user = userObject.user_id;
     console.log(`User name is ${user}`);
     const videoId = req.body.videoId;

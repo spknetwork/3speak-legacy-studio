@@ -1,6 +1,7 @@
 import mongoDB from "../../mongoDB.js";
 import hive from "@hiveio/hive-js";
 import config from "../../consts.js";
+import jwt from "jsonwebtoken";
 hive.api.setOptions({ useAppbaseApi: true, url: "http://api.hive.blog" });
 
 async function requireMobileLogin(req, res, next) {

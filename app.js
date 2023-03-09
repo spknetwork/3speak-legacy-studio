@@ -28,10 +28,13 @@ app.use(cors({credentials: true}));
 
 app.use((req, res, next) => {
     res.locals = Object.assign(res.locals, global);
-    // res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-    // res.setHeader('Access-Control-Allow-Origin','*');
-    // res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS'); 
-    // res.setHeader('Access-Control-Allow-Headers', '*'); 
+    res.header("Access-Control-Allow-Origin", req.header("Origin"));
+    res.header("Access-Control-Allow-Credentials", true);
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
     next();
 })
 app.set('trust proxy', true)

@@ -28,6 +28,15 @@ if (process.env.ENV === "dev") {
   cluster = new Cluster("http://localhost:9094", {});
 }
 
+function getUserFromRequest(req) {
+  let user = req.session.user;
+  if (user === null || user === undefined) {
+    const token = req.headers['authorization'].replace("Bearer ", "");
+    user = jwt.verify(token, config.AUTH_JWT_SECRET);
+  }
+  return user;
+}
+
 router.get("/login", async (req, res) => {
   try {
     const { access_token = null } = req.query;
@@ -112,10 +121,11 @@ router.post(
   "/api/upload_info",
   middleware.requireMobileLogin,
   async (req, res) => {
+    let user = getUserFromRequest(req);
     try {
       let video = new mongoDB.Video();
       let videoCount = await mongoDB.Video.countDocuments({
-        owner: req.session.user.user_id,
+        owner: user.user_id,
       });
       if (videoCount === 0) {
         video.firstUpload = true;
@@ -184,7 +194,7 @@ router.post(
       }
     } catch (e) {
       console.log("ERROR: /api/upload/newUpload", {
-        username: req.session.user.user_id,
+        username: user.user_id,
       });
       console.log(e);
       return res.status(500).send({ error: `Error is ${e.toString()}` });
@@ -196,7 +206,8 @@ router.post(
   "/api/update_info",
   middleware.requireMobileLogin,
   async (req, res) => {
-    const user = req.session.user.user_id;
+    let userObject = getUserFromRequest(req);
+    const user = userObject.user_id;
     const videoId = req.body.videoId;
     let videoEntry = await mongoDB.Video.findOne({ owner: user, _id: videoId });
     if (!videoEntry) {
@@ -242,7 +253,8 @@ router.post(
   "/api/update_thumbnail",
   middleware.requireMobileLogin,
   async (req, res) => {
-    const user = req.session.user.user_id;
+    let userObject = getUserFromRequest(req);
+    const user = userObject.user_id;
     const videoId = req.body.videoId;
     if (videoId === undefined) {
       return res.status(500).send({ error: "VideoId not found in request body" });
@@ -281,7 +293,8 @@ router.get(
   "/api/my-videos",
   middleware.requireMobileLogin,
   async (req, res) => {
-    const user = req.session.user.user_id;
+    let userObject = getUserFromRequest(req);
+    const user = userObject.user_id;
     let query = { owner: user };
 
     const statusOptions = [
@@ -381,7 +394,8 @@ router.post(
   "/api/my-videos/iPublished",
   middleware.requireMobileLogin,
   async (req, res) => {
-    const user = req.session.user.user_id;
+    let userObject = getUserFromRequest(req);
+    const user = userObject.user_id;
     console.log(`User name is ${user}`);
     const videoId = req.body.videoId;
     console.log(`video id is ${videoId}`);

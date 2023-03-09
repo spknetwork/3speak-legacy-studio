@@ -12,7 +12,6 @@ import md5 from 'md5';
 import spkHelper from './spkHelper.js';
 import Sentry from '@sentry/node';
 import mongoDB from './mongoDB.js';
-import cors from 'cors'; 
 
 import indexRouter from './routes/index.js';
 import mobileRouter from './routes/mobile/mobile-router.js';
@@ -24,15 +23,13 @@ Sentry.init({dsn: APP_SENTRY_DSN});
 
 var app = express();
 
-app.use(cors({credentials: true}));
-
 app.use((req, res, next) => {
     res.locals = Object.assign(res.locals, global);
     res.header("Access-Control-Allow-Origin", req.header("Origin"));
     res.header("Access-Control-Allow-Credentials", true);
     res.header(
         "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept"
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
     next();

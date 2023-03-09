@@ -72,9 +72,6 @@ router.get("/login", async (req, res) => {
         publicKey,
         `#${token}`
       );
-      console.log("==================");
-      console.log(`encryptedToken is ${encryptedToken}`);
-      console.log("==================");
       return res.send({
         memo: encryptedToken,
       });

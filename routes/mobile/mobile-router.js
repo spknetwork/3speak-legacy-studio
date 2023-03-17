@@ -177,7 +177,7 @@ router.post(
           video.local_filename.includes("/") ||
           video.local_filename.includes("\\")
         ) {
-          filepath = video.local_filename;
+          return res.status(500).send({ error: "File name must not include any slashes." });
         } else {
           filepath = path.resolve(
             `${config.TUS_UPLOAD_PATH}/${video.local_filename}`

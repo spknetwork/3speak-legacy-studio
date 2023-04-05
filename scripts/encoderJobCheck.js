@@ -18,6 +18,12 @@ void (async () => {
         if(!job) {
             continue;
         }
+        if(!job.result) {
+            continue;
+        }
+        if(!job.result?.cid) {
+            continue;
+        }
         if(job.status === "complete") {
             const completed_by = job.assigned_to;
             try {

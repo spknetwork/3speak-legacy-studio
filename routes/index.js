@@ -721,8 +721,8 @@ router.post("/api/video/edit", middleware.requireLogin, middleware.checkPaymentR
             metadata: {
                 key: `${video.owner}/${video.permlink}/thumbnail`
             },
-            replicationFactorMin: 2,
-            replicationFactorMax: 3
+            //replicationFactorMin: 2,
+            //replicationFactorMax: 3
         })
         fs.unlinkSync(thumbnail.path);
 

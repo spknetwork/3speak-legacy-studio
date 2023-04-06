@@ -67,8 +67,8 @@ void (async () => {
         let success = false;
         for(let x = 0; x < 10; x++) {
             const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
-                replicationFactorMin: 1,
-                replicationFactorMax: 2
+                //replicationFactorMin: 1,
+                //replicationFactorMax: 2
             })
             try {
                 const { data } = await Axios.post(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/pushJob`, {

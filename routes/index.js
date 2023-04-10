@@ -1555,7 +1555,7 @@ router.post("/api/creator/vote/day", middleware.requireLogin, async (req, res) =
 router.post('/api/completeIdentityChallenge', middleware.requireLogin, async (req, res) => {
     let { signed_message, keychain } = req.body;
 
-    const wif_memo = keychain === 'true' ? config.threeSpeakPostWif : config.authWifMemo;
+    const wif_memo = keychain === true ? config.threeSpeakPostWif : config.authWifMemo;
 
     const wif_pub = config.authPubMemo;
 

@@ -174,6 +174,7 @@ const VideoSchema = new mongoose.Schema({
     local_filename: {type: String},
     fromMobile: {type: Boolean, default: false},
     isReel: {type: Boolean, default: false},
+    app: {type: String},
 });
 const SubscriptionSchema = new mongoose.Schema({
     userId: {type: String, required: true},

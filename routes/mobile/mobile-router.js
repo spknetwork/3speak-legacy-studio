@@ -123,6 +123,7 @@ router.post(
   middleware.requireMobileLogin,
   async (req, res) => {
     let user = getUserFromRequest(req);
+    const { app = null } = req.query;
     if (user === undefined || user === null) {
       return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
     }
@@ -168,7 +169,11 @@ router.post(
       fs.unlinkSync(thumbnail);
       // Save video details
       video.thumbnail = `ipfs://${thumbnailCid}`;
-      video.fromMobile = true;
+      if (app === null) {
+        video.fromMobile = true;
+      } else {
+        video.app = app;
+      }
       // put it in queue
       console.log(video);
       if (video.local_filename) {

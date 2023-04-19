@@ -424,13 +424,8 @@ router.post(
     if (!video) {
       return res.status(500).send({ error: "video not found" });
     }
-    if (!video.fromMobile) {
-      return res
-        .status(500)
-        .send({ error: "This video was not uploaded from Mobile" });
-    }
     if (video.steemPosted || video.status === "published") {
-      return res.status(500).send({ error: "Video is already published" });
+      return res.send({ success: true, data: video });
     }
     try {
       const doesPostHaveValidBeneficiaries =
@@ -449,6 +444,7 @@ router.post(
     } catch (e) {
       // upon not finding data on hive-chain, it will simply throw an error to client.
       // it won't mark video as failed.
+      console.error(e.message);
       return res.status(500).send({ error: e });
     }
   }

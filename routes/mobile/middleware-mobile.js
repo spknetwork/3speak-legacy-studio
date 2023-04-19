@@ -7,7 +7,7 @@ hive.api.setOptions({ useAppbaseApi: true, url: "http://api.hive.blog" });
 async function requireMobileLogin(req, res, next) {
   let user = req.session.user;
   if (user === null || user === undefined) {
-    const token = req.headers['authorization'].replace("Bearer ", "");
+    const token = req.headers["authorization"].replace("Bearer ", "");
     try {
       user = jwt.verify(token, config.AUTH_JWT_SECRET);
     } catch (e) {
@@ -89,42 +89,29 @@ async function validateHiveContent(author, permlink) {
 async function validateBeneficiaries(author, permlink) {
   try {
     const beneficiaries = await validateHiveContent(author, permlink);
-    const sagar = beneficiaries.filter(function (o) {
-      return o.account === "sagarkothari88";
+    const video = await mongoDB.VideoBoost.findOne({
+      permlink: permlink,
     });
-    const spkBeneficiary = beneficiaries.filter(function (o) {
-      return o.account === "spk.beneficiary";
-    });
-    const threespeakleader = beneficiaries.filter(function (o) {
-      return o.account === "threespeakleader";
-    });
-    if (
-      sagar.length > 0 &&
-      threespeakleader.length > 0 &&
-      threespeakleader.length > 0
-    ) {
+    if (video.fromMobile === true) {
+      const sagar = beneficiaries.filter((o) =>  o.account === "sagarkothari88");
+      const spkBeneficiary = beneficiaries.filter((o) => o.account === "spk.beneficiary");
+      const threespeakleader = beneficiaries.filter((o) => o.account === "threespeakleader");
+      if (sagar.length === 0 || threespeakleader.length === 0 || threespeakleader.length === 0) return false;
       const sagarBenWeight = sagar[0].weight;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       const threespeakleaderWeight = threespeakleader[0].weight;
-      if (
-        sagarBenWeight !== undefined &&
-        spkBeneficiaryWeight !== undefined &&
-        threespeakleaderWeight !== undefined
-      ) {
-        if (
-          sagarBenWeight < 100 ||
-          spkBeneficiaryWeight < 850 ||
-          threespeakleaderWeight < 100
-        ) {
-          return false;
-        } else {
-          return true;
-        }
-      } else {
-        return false;
-      }
+      if (sagarBenWeight === undefined || spkBeneficiaryWeight === undefined || threespeakleaderWeight === undefined || sagarBenWeight === null || spkBeneficiaryWeight === null || threespeakleaderWeight === null) return false;
+      if (sagarBenWeight < 100 || spkBeneficiaryWeight < 850 || threespeakleaderWeight < 100) return false;
+      return true;
     } else {
-      return false;
+      const spkBeneficiary = beneficiaries.filter((o) => o.account === "spk.beneficiary");
+      const threespeakleader = beneficiaries.filter((o) => o.account === "threespeakleader");
+      if (threespeakleader.length === 0 || threespeakleader.length === 0) return false;
+      const spkBeneficiaryWeight = spkBeneficiary[0].weight;
+      const threespeakleaderWeight = threespeakleader[0].weight;
+      if (spkBeneficiaryWeight === undefined || threespeakleaderWeight === undefined || spkBeneficiaryWeight === null || threespeakleaderWeight === null) return false;
+      if (spkBeneficiaryWeight < 900 || threespeakleaderWeight < 100) return false;
+      return true;
     }
   } catch (e) {
     console.error(e);

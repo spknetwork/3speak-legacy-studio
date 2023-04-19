@@ -89,10 +89,14 @@ async function validateHiveContent(author, permlink) {
 async function validateBeneficiaries(author, permlink) {
   try {
     const beneficiaries = await validateHiveContent(author, permlink);
-    const video = await mongoDB.VideoBoost.findOne({
+    const video = await mongoDB.Video.findOne({
       permlink: permlink,
     });
-    if (video.fromMobile === true) {
+    if (video === null) {
+      throw new Error('Video not found');
+    }
+    const fromMobile = video.fromMobile;
+    if (fromMobile !== undefined && fromMobile !== null && fromMobile === true) {
       const sagar = beneficiaries.filter((o) =>  o.account === "sagarkothari88");
       const spkBeneficiary = beneficiaries.filter((o) => o.account === "spk.beneficiary");
       const threespeakleader = beneficiaries.filter((o) => o.account === "threespeakleader");

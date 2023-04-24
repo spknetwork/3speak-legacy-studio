@@ -25,9 +25,9 @@ function doWeHavePostingAuthority(username) {
         }
         return resolve(false);
       } else {
-        throw new Error(
+        return reject(Error(
           "Error while getting account information for " + username
-        );
+        ));
       }
     });
   });

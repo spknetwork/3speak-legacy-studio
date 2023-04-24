@@ -1,37 +1,7 @@
 import '../page_conf.js'
 import mongoDB from '../mongoDB.js';
 import Axios from 'axios'
-
-import hive from "@hiveio/hive-js";
-hive.api.setOptions({ useAppbaseApi: true });
-
-function doWeHavePostingAuthority(username) {
-  return new Promise(function (resolve, reject) {
-    hive.api.getAccounts([username], function (err, result) {
-      if (
-        (err === null || err === undefined) &&
-        result !== null &&
-        result !== undefined &&
-        Array.isArray(result) &&
-        result.length === 1
-      ) {
-        const account = result[0];
-        if (Array.isArray(account.posting.account_auths)) {
-          account.posting.account_auths.forEach(function (item) {
-            if (item[0] === "threespeak") {
-              return resolve(true);
-            }
-          });
-        }
-        return resolve(false);
-      } else {
-        return reject(Error(
-          "Error while getting account information for " + username
-        ));
-      }
-    });
-  });
-}
+//import mobileNotifier from '../mobile-firebase-notifier.js';
 
 void (async () => {
     setTimeout(() => {
@@ -99,18 +69,7 @@ void (async () => {
             video.status = video.publish_type === 'publish' ? 'published' : 'scheduled'
             if (('fromMobile' in video && video.fromMobile === true) || ('app' in video && video.app !== undefined && video.app !== null)) {
                 video.status = "publish_manual";
-        
-                // If we have the posting authority, we publish.
-                try {
-                  const doWe = await doWeHavePostingAuthority(video.owner);
-                  if (doWe) {
-                    video.status = "published";
-                  }
-                } catch (e) {
-                  console.error("Error while getting account information");
-                }
-                // - - - - - - - - - - - - - - - - - - - -
-              }
+            }
             video.created = new Date(job.created_at)
             video.video_v2 = `ipfs://${job.result.cid}/manifest.m3u8`;
             video.needsHiveUpdate = true

@@ -229,10 +229,19 @@ router.post(
     videoEntry.description = req.body.description;
     videoEntry.isNsfwContent = req.body.isNsfwContent;
     videoEntry.tags = req.body.tags;
-    if (typeof req.body.tags == "string" && req.body.tags.length > 0) {
+    if (typeof req.body.tags === "string" && req.body.tags.length > 0) {
       videoEntry["tags_v2"] = req.body.tags.split(",");
     } else {
       videoEntry["tags_v2"] = [];
+    }
+    if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
+      videoEntry.beneficiaries = req.body.beneficiaries;
+    }
+    if (typeof req.body.rewardPowerup === "boolean") {
+      videoEntry.rewardPowerup = req.body.rewardPowerup;
+    }
+    if (typeof req.body.declineRewards === "boolean") {
+      videoEntry.declineRewards = req.body.declineRewards;
     }
     console.log(`request body: ${JSON.stringify(req.body)}`);
     console.log("Before moving thumbnail");

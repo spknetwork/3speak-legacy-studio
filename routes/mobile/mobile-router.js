@@ -46,6 +46,7 @@ router.get("/login", async (req, res) => {
     const { access_token = null } = req.query;
     const { username = null } = req.query;
     const { client = null } = req.query;
+    const { hivesigner = null } = req.query;
     if (username == null) {
       return res.status(500).json({
         error: "Please provide username.",
@@ -55,11 +56,16 @@ router.get("/login", async (req, res) => {
     if (!req.session.user && access_token === null) {
       let publicKey = null;
       if (client === null) {
-        const [account] = await hive.api.getAccountsAsync([username]);
-        publicKey = account.posting.key_auths[0][0];
+        if (hivesigner === true) {
+          const [account] = await hive.api.getAccountsAsync(['hivesigner']);
+          publicKey = account.posting.key_auths[0][0];
+        } else {
+          const [account] = await hive.api.getAccountsAsync([username]);
+          publicKey = account.posting.key_auths[0][0];
+        }
         // instead simple string comparison, we'll have an array of clients along with the public key provided by them
         // for their trusted clients. once we have those in place, we will update this code.
-      } else if (client == "mobile") {
+      } else if (client === "mobile") {
         // mobile client will have private key of following public key. with it, mobile-client will be able to decrypt it
         // it will be used for hive-keychain-based-sessions on mobile-client
         publicKey = config.MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY;

@@ -147,6 +147,12 @@ router.post(
         .toLowerCase();
       video.duration = parseFloat(req.body.duration);
       video.size = parseFloat(req.body.size);
+      if (req.body.width !== undefined) {
+        video.width = parseFloat(req.body.width);
+      }
+      if (req.body.height !== undefined) {
+        video.height = parseFloat(req.body.height);
+      }
       video.owner = req.body.owner;
       video.created = Date.now();
       video.upload_type = "ipfs";

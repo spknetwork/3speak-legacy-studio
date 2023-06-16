@@ -56,7 +56,7 @@ router.get("/login", async (req, res) => {
     if (!req.session.user && access_token === null) {
       let publicKey = null;
       if (client === null) {
-        if (hivesigner === true) {
+        if (hivesigner === "true") {
           const [account] = await hive.api.getAccountsAsync(['hivesigner']);
           publicKey = account.posting.key_auths[0][0];
         } else {

@@ -4,6 +4,14 @@ import config from "../../consts.js";
 import jwt from "jsonwebtoken";
 hive.api.setOptions({ useAppbaseApi: true, url: "http://api.hive.blog" });
 
+import dhive from "@hiveio/dhive";
+var client = new dhive.Client([
+  "https://api.hive.blog",
+  "https://api.hivekings.com",
+  "https://anyx.io",
+  "https://api.openhive.network",
+]);
+
 async function requireMobileLogin(req, res, next) {
   let user = req.session.user;
   if (user === null || user === undefined) {
@@ -55,66 +63,93 @@ async function requireMobileLogin(req, res, next) {
   }
 }
 
-async function validateHiveContent(author, permlink) {
-  return new Promise((resolve, reject) => {
-    hive.api.getContent(author, permlink, function (err, result) {
-      if (err) {
-        return reject(err);
-      } else if (typeof result === "string") {
-        const data = JSON.parse(result);
-        if (data.result !== undefined && data.result.length === 0) {
-          return reject("No data found on hive chain");
-        } else if (
-          data.result.beneficiaries !== undefined &&
-          Array.isArray(data.result.beneficiaries)
-        ) {
-          return resolve(data.result.beneficiaries);
-        } else {
-          return reject("No data found on hive chain");
-        }
-      } else if (result.result !== undefined && result.result.length === 0) {
-        return reject("No data found on hive chain");
-      } else if (
-        result.beneficiaries !== undefined &&
-        Array.isArray(result.beneficiaries)
-      ) {
-        return resolve(result.beneficiaries);
-      } else {
-        return reject("No data found on hive chain");
-      }
+async function getContent(author, permlink) {
+  try {
+    const data = await client.call("condenser_api", "get_content", {
+      author: author,
+      permlink: permlink,
     });
-  });
+    return data;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 }
 
-async function validateBeneficiaries(author, permlink) {
+async function hasValidPostBeneficiariesAndPayout(author, permlink) {
   try {
-    const beneficiaries = await validateHiveContent(author, permlink);
+    const content = await getContent(author, permlink);
+    const beneficiaries = content.beneficiaries;
     const video = await mongoDB.Video.findOne({
       permlink: permlink,
     });
     if (video === null) {
-      throw new Error('Video not found');
+      throw new Error("Video not found");
+    }
+    if (
+      video.declineRewards === true &&
+      content.max_accepted_payout === "0.000 HBD"
+    ) {
+      return true;
     }
     const fromMobile = video.fromMobile;
-    if (fromMobile !== undefined && fromMobile !== null && fromMobile === true) {
-      const sagar = beneficiaries.filter((o) =>  o.account === "sagarkothari88");
-      const spkBeneficiary = beneficiaries.filter((o) => o.account === "spk.beneficiary");
-      const threespeakleader = beneficiaries.filter((o) => o.account === "threespeakleader");
-      if (sagar.length === 0 || threespeakleader.length === 0 || threespeakleader.length === 0) return false;
+    if (
+      fromMobile !== undefined &&
+      fromMobile !== null &&
+      fromMobile === true
+    ) {
+      const sagar = beneficiaries.filter((o) => o.account === "sagarkothari88");
+      const spkBeneficiary = beneficiaries.filter(
+        (o) => o.account === "spk.beneficiary"
+      );
+      const threespeakleader = beneficiaries.filter(
+        (o) => o.account === "threespeakleader"
+      );
+      if (
+        sagar.length === 0 ||
+        threespeakleader.length === 0 ||
+        threespeakleader.length === 0
+      )
+        return false;
       const sagarBenWeight = sagar[0].weight;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       const threespeakleaderWeight = threespeakleader[0].weight;
-      if (sagarBenWeight === undefined || spkBeneficiaryWeight === undefined || threespeakleaderWeight === undefined || sagarBenWeight === null || spkBeneficiaryWeight === null || threespeakleaderWeight === null) return false;
-      if (sagarBenWeight < 100 || spkBeneficiaryWeight < 850 || threespeakleaderWeight < 100) return false;
+      if (
+        sagarBenWeight === undefined ||
+        spkBeneficiaryWeight === undefined ||
+        threespeakleaderWeight === undefined ||
+        sagarBenWeight === null ||
+        spkBeneficiaryWeight === null ||
+        threespeakleaderWeight === null
+      )
+        return false;
+      if (
+        sagarBenWeight < 100 ||
+        spkBeneficiaryWeight < 850 ||
+        threespeakleaderWeight < 100
+      )
+        return false;
       return true;
     } else {
-      const spkBeneficiary = beneficiaries.filter((o) => o.account === "spk.beneficiary");
-      const threespeakleader = beneficiaries.filter((o) => o.account === "threespeakleader");
-      if (threespeakleader.length === 0 || threespeakleader.length === 0) return false;
+      const spkBeneficiary = beneficiaries.filter(
+        (o) => o.account === "spk.beneficiary"
+      );
+      const threespeakleader = beneficiaries.filter(
+        (o) => o.account === "threespeakleader"
+      );
+      if (threespeakleader.length === 0 || threespeakleader.length === 0)
+        return false;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       const threespeakleaderWeight = threespeakleader[0].weight;
-      if (spkBeneficiaryWeight === undefined || threespeakleaderWeight === undefined || spkBeneficiaryWeight === null || threespeakleaderWeight === null) return false;
-      if (spkBeneficiaryWeight < 900 || threespeakleaderWeight < 100) return false;
+      if (
+        spkBeneficiaryWeight === undefined ||
+        threespeakleaderWeight === undefined ||
+        spkBeneficiaryWeight === null ||
+        threespeakleaderWeight === null
+      )
+        return false;
+      if (spkBeneficiaryWeight < 900 || threespeakleaderWeight < 100)
+        return false;
       return true;
     }
   } catch (e) {
@@ -125,5 +160,5 @@ async function validateBeneficiaries(author, permlink) {
 
 export default {
   requireMobileLogin,
-  validateBeneficiaries,
+  hasValidPostBeneficiariesAndPayout,
 };

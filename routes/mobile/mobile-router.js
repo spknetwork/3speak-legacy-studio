@@ -247,7 +247,7 @@ router.post(
       videoEntry["tags_v2"] = [];
     }
     if (typeof req.body.communityID === "string" && req.body.communityID.length > 0) {
-      videoEntry.communityID = req.body.communityID;
+      videoEntry.community = req.body.communityID;
     }
     if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
       videoEntry.beneficiaries = req.body.beneficiaries;

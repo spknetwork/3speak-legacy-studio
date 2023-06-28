@@ -7,7 +7,6 @@ hive.api.setOptions({ useAppbaseApi: true, url: "http://api.hive.blog" });
 import dhive from "@hiveio/dhive";
 var client = new dhive.Client([
   "https://api.hive.blog",
-  "https://api.hivekings.com",
   "https://anyx.io",
   "https://api.openhive.network",
 ]);
@@ -65,7 +64,7 @@ async function requireMobileLogin(req, res, next) {
 
 async function getContent(author, permlink) {
   try {
-    const data = await client.call("condenser_api", "get_content", {
+    const data = await client.call("bridge", "get_post", {
       author: author,
       permlink: permlink,
     });

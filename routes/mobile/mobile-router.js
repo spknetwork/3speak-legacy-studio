@@ -453,7 +453,7 @@ router.post(
     }
     try {
       const doesPostHaveValidBeneficiaries =
-        await middleware.validateBeneficiaries(video.owner, video.permlink);
+        await middleware.hasValidPostBeneficiariesAndPayout(video.owner, video.permlink);
       if (doesPostHaveValidBeneficiaries) {
         video.steemPosted = true;
         video.status = "published";

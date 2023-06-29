@@ -106,7 +106,7 @@ import axios from 'axios';
 import dhive from '@hiveio/dhive';
 import fs from 'fs';
 
-var client = new dhive.Client(["https://api.hive.blog", "https://api.hivekings.com", "https://anyx.io", "https://api.openhive.network"]);
+var client = new dhive.Client(["https://api.hive.blog", "https://anyx.io", "https://api.openhive.network"]);
 
 router.get("/verify", middleware.requireLogin, async (req, res) => {
     let { id = null } = req.query;

@@ -92,21 +92,21 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
       return true;
     }
     const fromMobile = video.fromMobile;
+    const sagar = beneficiaries.filter((o) => o.account === "sagarkothari88");
+    const spkBeneficiary = beneficiaries.filter(
+      (o) => o.account === "spk.beneficiary"
+    );
+    const threespeakleader = beneficiaries.filter(
+      (o) => o.account === "threespeakleader"
+    );
     if (
       fromMobile !== undefined &&
       fromMobile !== null &&
       fromMobile === true
     ) {
-      const sagar = beneficiaries.filter((o) => o.account === "sagarkothari88");
-      const spkBeneficiary = beneficiaries.filter(
-        (o) => o.account === "spk.beneficiary"
-      );
-      const threespeakleader = beneficiaries.filter(
-        (o) => o.account === "threespeakleader"
-      );
       if (
         sagar.length === 0 ||
-        threespeakleader.length === 0 ||
+        spkBeneficiary.length === 0 ||
         threespeakleader.length === 0
       )
         return false;
@@ -130,13 +130,7 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
         return false;
       return true;
     } else {
-      const spkBeneficiary = beneficiaries.filter(
-        (o) => o.account === "spk.beneficiary"
-      );
-      const threespeakleader = beneficiaries.filter(
-        (o) => o.account === "threespeakleader"
-      );
-      if (threespeakleader.length === 0 || threespeakleader.length === 0)
+      if (threespeakleader.length === 0 || spkBeneficiary.length === 0)
         return false;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       const threespeakleaderWeight = threespeakleader[0].weight;

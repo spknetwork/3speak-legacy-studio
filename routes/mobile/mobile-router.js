@@ -21,7 +21,7 @@ let cluster;
 if (process.env.ENV === "dev") {
   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
     headers: {
-      Authorization: process.env.IPFS_CLUSTER_AUTH
+      Authorization: process.env.IPFS_CLUSTER_AUTH,
     },
   });
 } else {
@@ -31,7 +31,7 @@ if (process.env.ENV === "dev") {
 function getUserFromRequest(req) {
   let user = req.session.user;
   if (user === null || user === undefined) {
-    const token = req.headers['authorization'].replace("Bearer ", "");
+    const token = req.headers["authorization"].replace("Bearer ", "");
     try {
       user = jwt.verify(token, config.AUTH_JWT_SECRET);
     } catch (e) {
@@ -57,7 +57,7 @@ router.get("/login", async (req, res) => {
       let publicKey = null;
       if (client === null) {
         if (hivesigner === "true") {
-          const [account] = await hive.api.getAccountsAsync(['hivesigner']);
+          const [account] = await hive.api.getAccountsAsync(["hivesigner"]);
           publicKey = account.posting.key_auths[0][0];
         } else {
           const [account] = await hive.api.getAccountsAsync([username]);
@@ -70,7 +70,9 @@ router.get("/login", async (req, res) => {
         // it will be used for hive-keychain-based-sessions on mobile-client
         publicKey = config.MOBILE_APP_KEYCHAIN_BASED_SESSION_PUBLIC_KEY;
       } else {
-        return res.status(500).send({ error: `Unsupported client found in the request.` });
+        return res
+          .status(500)
+          .send({ error: `Unsupported client found in the request.` });
       }
       var dataToSign = { user_id: username, network: "hive", banned: false };
       var token = jwt.sign(dataToSign, config.AUTH_JWT_SECRET, {
@@ -131,7 +133,12 @@ router.post(
     let user = getUserFromRequest(req);
     const { app = null } = req.query;
     if (user === undefined || user === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+      return res
+        .status(500)
+        .send({
+          error:
+            "Either session/token expired or session/token not found in request.",
+        });
     }
     try {
       let video = new mongoDB.Video();
@@ -194,7 +201,9 @@ router.post(
           video.local_filename.includes("/") ||
           video.local_filename.includes("\\")
         ) {
-          return res.status(500).send({ error: "File name must not include any slashes." });
+          return res
+            .status(500)
+            .send({ error: "File name must not include any slashes." });
         } else {
           filepath = path.resolve(
             `${config.TUS_UPLOAD_PATH}/${video.local_filename}`
@@ -229,7 +238,12 @@ router.post(
   async (req, res) => {
     let userObject = getUserFromRequest(req);
     if (userObject === undefined || userObject === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+      return res
+        .status(500)
+        .send({
+          error:
+            "Either session/token expired or session/token not found in request.",
+        });
     }
     const user = userObject.user_id;
     const videoId = req.body.videoId;
@@ -246,10 +260,16 @@ router.post(
     } else {
       videoEntry["tags_v2"] = [];
     }
-    if (typeof req.body.communityID === "string" && req.body.communityID.length > 0) {
+    if (
+      typeof req.body.communityID === "string" &&
+      req.body.communityID.length > 0
+    ) {
       videoEntry.community = req.body.communityID;
     }
-    if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
+    if (
+      typeof req.body.beneficiaries === "string" &&
+      req.body.beneficiaries.length > 0
+    ) {
       videoEntry.beneficiaries = req.body.beneficiaries;
     }
     if (typeof req.body.rewardPowerup === "boolean") {
@@ -291,19 +311,26 @@ router.post(
   async (req, res) => {
     let userObject = getUserFromRequest(req);
     if (userObject === undefined || userObject === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+      return res
+        .status(500)
+        .send({
+          error:
+            "Either session/token expired or session/token not found in request.",
+        });
     }
     const user = userObject.user_id;
     const videoId = req.body.videoId;
     if (videoId === undefined) {
-      return res.status(500).send({ error: "VideoId not found in request body" });
+      return res
+        .status(500)
+        .send({ error: "VideoId not found in request body" });
     }
     let videoEntry = await mongoDB.Video.findOne({ owner: user, _id: videoId });
     if (!videoEntry) {
       return res.status(500).send({ error: "video not found" });
     }
     if (req.body.thumbnail !== undefined) {
-      console.log('trying to move thumbnail');
+      console.log("trying to move thumbnail");
       //  move thumbnail to ipfs
       let thumbnail = path.resolve(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
@@ -323,7 +350,9 @@ router.post(
       await videoEntry.save();
       res.send(videoEntry);
     } else {
-      return res.status(500).send({ error: "Thumbnail not found in request body" });
+      return res
+        .status(500)
+        .send({ error: "Thumbnail not found in request body" });
     }
   }
 );
@@ -334,7 +363,12 @@ router.get(
   async (req, res) => {
     let userObject = getUserFromRequest(req);
     if (userObject === undefined || userObject === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+      return res
+        .status(500)
+        .send({
+          error:
+            "Either session/token expired or session/token not found in request.",
+        });
     }
     const user = userObject.user_id;
     let query = { owner: user };
@@ -392,7 +426,10 @@ router.get(
               video.visible_status = `Queued. Position in queue ${info.rank}`;
             } else if (job.status === "uploading") {
               video.visible_status = `Finalizing`;
-            } else if (job.status === "failed" || job.status === "encoding_failed") {
+            } else if (
+              job.status === "failed" ||
+              job.status === "encoding_failed"
+            ) {
               video.visible_status = `Failed`;
             } else {
               video.visible_status = job.status;
@@ -438,7 +475,12 @@ router.post(
   async (req, res) => {
     let userObject = getUserFromRequest(req);
     if (userObject === undefined || userObject === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+      return res
+        .status(500)
+        .send({
+          error:
+            "Either session/token expired or session/token not found in request.",
+        });
     }
     const user = userObject.user_id;
     console.log(`User name is ${user}`);
@@ -453,7 +495,10 @@ router.post(
     }
     try {
       const doesPostHaveValidBeneficiaries =
-        await middleware.hasValidPostBeneficiariesAndPayout(video.owner, video.permlink);
+        await middleware.hasValidPostBeneficiariesAndPayout(
+          video.owner,
+          video.permlink
+        );
       if (doesPostHaveValidBeneficiaries) {
         video.steemPosted = true;
         video.status = "published";
@@ -463,7 +508,7 @@ router.post(
         // Marking video as failed because user didn't add necessary beneficiaries to the video-post on hive chain.
         video.status = "encoding_failed";
         await video.save();
-        res.status(500).send({ error: 'Insufficient beneficiaries found.' });
+        res.status(500).send({ error: "Insufficient beneficiaries found." });
       }
     } catch (e) {
       // upon not finding data on hive-chain, it will simply throw an error to client.
@@ -473,5 +518,34 @@ router.post(
     }
   }
 );
+
+router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
+  let userObject = getUserFromRequest(req);
+  if (userObject === undefined || userObject === null) {
+    return res
+      .status(500)
+      .send({
+        error:
+          "Either session/token expired or session/token not found in request.",
+      });
+  }
+  const user = userObject.user_id;
+  console.log(`User name is ${user}`);
+  let subs = await mongoDB.Subscription.find({ userId: user });
+  let subchannels = [];
+  for (let i = 0; i < subs.length; i++) {
+    subchannels.push(subs[i].channel);
+  }
+
+  let feed = await mongoDB.Video.find(
+    {
+      status: "published",
+      owner: { $in: subchannels },
+    },
+    null,
+    { limit: 100 }
+  ).sort("-created");
+  res.send(feed);
+});
 
 export default router;

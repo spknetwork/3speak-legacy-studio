@@ -474,4 +474,33 @@ router.post(
   }
 );
 
+router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
+  let userObject = getUserFromRequest(req);
+  if (userObject === undefined || userObject === null) {
+    return res
+      .status(500)
+      .send({
+        error:
+          "Either session/token expired or session/token not found in request.",
+      });
+  }
+  const user = userObject.user_id;
+  console.log(`User name is ${user}`);
+  let subs = await mongoDB.Subscription.find({ userId: user });
+  let subchannels = [];
+  for (let i = 0; i < subs.length; i++) {
+    subchannels.push(subs[i].channel);
+  }
+
+  let feed = await mongoDB.Video.find(
+    {
+      status: "published",
+      owner: { $in: subchannels },
+    },
+    null,
+    { limit: 100 }
+  ).sort("-created");
+  res.send(feed);
+});
+
 export default router;

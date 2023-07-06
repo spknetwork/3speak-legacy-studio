@@ -474,7 +474,26 @@ router.post(
   }
 );
 
-router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
+function getSkipValueFromRequest(req) {
+  let skip = req.query.skip;
+  if (typeof parseInt(skip) === 'number' && !isNaN(parseInt(skip))) {
+    skip = parseInt(skip)
+  } else {
+    skip = 0
+  }
+  return skip;
+}
+async function sendFeedResponse(req, res, query) {
+  const queryLimit = 50;
+  let skip = getSkipValueFromRequest(req);
+  if (req.query.shorts === 'true') {
+    query.isReel = true;
+  }
+  const feed = await mongoDB.Video.find(query).sort('-created').skip(skip).limit(queryLimit);
+  res.send(feed);
+}
+
+router.get("/api/feed/my", middleware.requireMobileLogin, async (req, res) => {
   let userObject = getUserFromRequest(req);
   if (userObject === undefined || userObject === null) {
     return res
@@ -485,25 +504,37 @@ router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
       });
   }
   const user = userObject.user_id;
-
-  let skip = req.query.skip;
-  if (typeof parseInt(skip) === 'number' && !isNaN(parseInt(skip))) {
-    skip = parseInt(skip)
-  } else {
-    skip = 0
-  }
-
   let subs = await mongoDB.Subscription.find({ userId: user });
   let subchannels = [];
   for (let i = 0; i < subs.length; i++) {
     subchannels.push(subs[i].channel);
   }
-  let feed = [];
-  const subscribedQuery = { status: "published", owner: { $in: subchannels } };
-  if (subchannels.length > 0) {
-    feed = await mongoDB.Video.find(subscribedQuery).sort("-created").skip(skip).limit(100);
-  }
-  res.send(feed);
+  await sendFeedResponse(req, res, { status: "published", owner: { $in: subchannels } });
+});
+
+router.get("/api/feed/home", async (req, res) => {
+  await sendFeedResponse(req, res, { recommended: true, status: 'published' });
+});
+
+router.get("/api/feed/trending", async (req, res) => {
+  let lastWeek = new Date((new Date()).setDate(new Date().getDate() - 7))
+  await sendFeedResponse(req, res, { status: 'published', created: {$gt: lastWeek} });
+});
+
+router.get("/api/feed/new", async (req, res) => {
+  await sendFeedResponse(req, res, { status: 'published' });
+});
+
+router.get("/api/feed/first", async (req, res) => {
+  await sendFeedResponse(req, res, { status: 'published', firstUpload: true, owner: {$ne: 'guest-account'} });
+});
+
+router.get("/api/feed/user/@:user", async (req, res) => {
+  await sendFeedResponse(req, res, { status: 'published', owner: req.params.username });
+});
+
+router.get("/api/feed/community/@:community", async (req, res) => {
+  await sendFeedResponse(req, res, { status: 'published', hive: req.params.community });
 });
 
 export default router;

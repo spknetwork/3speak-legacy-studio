@@ -485,21 +485,28 @@ router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
       });
   }
   const user = userObject.user_id;
-  console.log(`User name is ${user}`);
+
+  let skip = req.query.skip;
+  if (typeof parseInt(skip) === 'number' && !isNaN(parseInt(skip))) {
+    skip = parseInt(skip)
+  } else {
+    skip = 0
+  }
+
   let subs = await mongoDB.Subscription.find({ userId: user });
   let subchannels = [];
   for (let i = 0; i < subs.length; i++) {
     subchannels.push(subs[i].channel);
   }
-
-  let feed = await mongoDB.Video.find(
-    {
-      status: "published",
-      owner: { $in: subchannels },
-    },
-    null,
-    { limit: 100 }
-  ).sort("-created");
+  let feed = [];
+  const subscribedQuery = { status: "published", owner: { $in: subchannels } };
+  const recommendedQuery  = { recommended: true, status: 'published' };
+  if (subchannels.length > 0) {
+    feed = await mongoDB.Video.find(subscribedQuery).sort("-created").skip(skip).limit(100);
+  }
+  if (feed.length == 0) {
+    feed = await mongo.Video.find(recommendedQuery).sort('-created').skip(skip).limit(100);    
+  }
   res.send(feed);
 });
 

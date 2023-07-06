@@ -500,12 +500,8 @@ router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
   }
   let feed = [];
   const subscribedQuery = { status: "published", owner: { $in: subchannels } };
-  const recommendedQuery  = { recommended: true, status: 'published' };
   if (subchannels.length > 0) {
     feed = await mongoDB.Video.find(subscribedQuery).sort("-created").skip(skip).limit(100);
-  }
-  if (feed.length == 0) {
-    feed = await mongo.Video.find(recommendedQuery).sort('-created').skip(skip).limit(100);    
   }
   res.send(feed);
 });

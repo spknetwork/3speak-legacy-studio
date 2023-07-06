@@ -489,6 +489,7 @@ async function sendFeedResponse(req, res, query) {
   if (req.query.shorts === 'true') {
     query.isReel = true;
   }
+  query.status = 'published';
   const feed = await mongoDB.Video.find(query).sort('-created').skip(skip).limit(queryLimit);
   res.send(feed);
 }
@@ -509,32 +510,32 @@ router.get("/api/feed/my", middleware.requireMobileLogin, async (req, res) => {
   for (let i = 0; i < subs.length; i++) {
     subchannels.push(subs[i].channel);
   }
-  await sendFeedResponse(req, res, { status: "published", owner: { $in: subchannels } });
+  await sendFeedResponse(req, res, { owner: { $in: subchannels } });
 });
 
 router.get("/api/feed/home", async (req, res) => {
-  await sendFeedResponse(req, res, { recommended: true, status: 'published' });
+  await sendFeedResponse(req, res, { recommended: true });
 });
 
 router.get("/api/feed/trending", async (req, res) => {
   let lastWeek = new Date((new Date()).setDate(new Date().getDate() - 7))
-  await sendFeedResponse(req, res, { status: 'published', created: {$gt: lastWeek} });
+  await sendFeedResponse(req, res, { created: {$gt: lastWeek} });
 });
 
 router.get("/api/feed/new", async (req, res) => {
-  await sendFeedResponse(req, res, { status: 'published' });
+  await sendFeedResponse(req, res, { });
 });
 
 router.get("/api/feed/first", async (req, res) => {
-  await sendFeedResponse(req, res, { status: 'published', firstUpload: true, owner: {$ne: 'guest-account'} });
+  await sendFeedResponse(req, res, { firstUpload: true, owner: {$ne: 'guest-account'} });
 });
 
 router.get("/api/feed/user/@:user", async (req, res) => {
-  await sendFeedResponse(req, res, { status: 'published', owner: req.params.username });
+  await sendFeedResponse(req, res, { owner: req.params.username });
 });
 
 router.get("/api/feed/community/@:community", async (req, res) => {
-  await sendFeedResponse(req, res, { status: 'published', hive: req.params.community });
+  await sendFeedResponse(req, res, { hive: req.params.community });
 });
 
 export default router;

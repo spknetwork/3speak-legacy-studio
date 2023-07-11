@@ -11,6 +11,7 @@ import hive from "@hiveio/hive-js";
 import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
+import moment from 'moment-timezone';
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -518,7 +519,7 @@ router.get("/api/feed/home", async (req, res) => {
 });
 
 router.get("/api/feed/trending", async (req, res) => {
-  let lastWeek = new Date((new Date()).setDate(new Date().getDate() - 7))
+  let lastWeek = moment().subtract(7,'day').asDate()
   await sendFeedResponse(req, res, { created: {$gt: lastWeek} });
 });
 

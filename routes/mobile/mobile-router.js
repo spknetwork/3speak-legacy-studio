@@ -11,6 +11,7 @@ import hive from "@hiveio/hive-js";
 import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
+import moment from 'moment-timezone';
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -474,7 +475,27 @@ router.post(
   }
 );
 
-router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
+function getSkipValueFromRequest(req) {
+  let skip = req.query.skip;
+  if (typeof parseInt(skip) === 'number' && !isNaN(parseInt(skip))) {
+    skip = parseInt(skip)
+  } else {
+    skip = 0
+  }
+  return skip;
+}
+async function sendFeedResponse(req, res, query) {
+  const queryLimit = 50;
+  let skip = getSkipValueFromRequest(req);
+  if (req.query.shorts === 'true') {
+    query.isReel = true;
+  }
+  query.status = 'published';
+  const feed = await mongoDB.Video.find(query).sort('-created').skip(skip).limit(queryLimit);
+  res.send(feed);
+}
+
+router.get("/api/feed/my", middleware.requireMobileLogin, async (req, res) => {
   let userObject = getUserFromRequest(req);
   if (userObject === undefined || userObject === null) {
     return res
@@ -485,22 +506,37 @@ router.get("/api/my-feed", middleware.requireMobileLogin, async (req, res) => {
       });
   }
   const user = userObject.user_id;
-  console.log(`User name is ${user}`);
   let subs = await mongoDB.Subscription.find({ userId: user });
   let subchannels = [];
   for (let i = 0; i < subs.length; i++) {
     subchannels.push(subs[i].channel);
   }
+  await sendFeedResponse(req, res, { owner: { $in: subchannels } });
+});
 
-  let feed = await mongoDB.Video.find(
-    {
-      status: "published",
-      owner: { $in: subchannels },
-    },
-    null,
-    { limit: 100 }
-  ).sort("-created");
-  res.send(feed);
+router.get("/api/feed/home", async (req, res) => {
+  await sendFeedResponse(req, res, { recommended: true });
+});
+
+router.get("/api/feed/trending", async (req, res) => {
+  let lastWeek = moment().subtract(7,'day').asDate()
+  await sendFeedResponse(req, res, { created: {$gt: lastWeek} });
+});
+
+router.get("/api/feed/new", async (req, res) => {
+  await sendFeedResponse(req, res, { });
+});
+
+router.get("/api/feed/first", async (req, res) => {
+  await sendFeedResponse(req, res, { firstUpload: true, owner: {$ne: 'guest-account'} });
+});
+
+router.get("/api/feed/user/@:user", async (req, res) => {
+  await sendFeedResponse(req, res, { owner: req.params.username });
+});
+
+router.get("/api/feed/community/@:community", async (req, res) => {
+  await sendFeedResponse(req, res, { hive: req.params.community });
 });
 
 export default router;

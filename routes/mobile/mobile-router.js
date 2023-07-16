@@ -495,18 +495,8 @@ async function sendFeedResponse(req, res, query) {
   res.send(feed);
 }
 
-router.get("/api/feed/my", middleware.requireMobileLogin, async (req, res) => {
-  let userObject = getUserFromRequest(req);
-  if (userObject === undefined || userObject === null) {
-    return res
-      .status(500)
-      .send({
-        error:
-          "Either session/token expired or session/token not found in request.",
-      });
-  }
-  const user = userObject.user_id;
-  let subs = await mongoDB.Subscription.find({ userId: user });
+router.get("/api/feed/@:username", async (req, res) => {
+  let subs = await mongoDB.Subscription.find({ userId: req.params.username });
   let subchannels = [];
   for (let i = 0; i < subs.length; i++) {
     subchannels.push(subs[i].channel);

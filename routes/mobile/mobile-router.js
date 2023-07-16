@@ -522,7 +522,7 @@ router.get("/api/feed/first", async (req, res) => {
 });
 
 router.get("/api/feed/user/@:user", async (req, res) => {
-  await sendFeedResponse(req, res, { owner: req.params.username });
+  await sendFeedResponse(req, res, { owner: req.params.user });
 });
 
 router.get("/api/feed/community/@:community", async (req, res) => {

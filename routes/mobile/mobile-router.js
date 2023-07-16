@@ -509,7 +509,7 @@ router.get("/api/feed/home", async (req, res) => {
 });
 
 router.get("/api/feed/trending", async (req, res) => {
-  let lastWeek = moment().subtract(7,'day').asDate()
+  let lastWeek = moment().subtract(7,'day').toDate();
   await sendFeedResponse(req, res, { created: {$gt: lastWeek} });
 });
 

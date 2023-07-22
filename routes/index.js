@@ -879,25 +879,25 @@ router.post("/api/video/queue", middleware.requireLogin, middleware.checkPayment
             thumbnail: video.thumbnail
         })
 
-        let allowedByRep = false
-        try {
+        //let allowedByRep = false
+        //try {
             
-            const data = await client.database.getAccounts([user])
+       //     const data = await client.database.getAccounts([user])
             
-            const rep = repLog10(data[0].reputation)
+       //     const rep = repLog10(data[0].reputation)
 
-            if(rep > 30) {
-                allowedByRep = true
-            }
+       //     if(rep > 30) {
+       //         allowedByRep = true
+       //     }
             
-        } catch {
+        //} catch {
 
-        }
+       // }
 
         
-        if(thumbnailCount > 5 && !allowedByRep) {
-            return res.send({ "status": "FAIL" })
-        }
+        //if(thumbnailCount > 5 && !allowedByRep) {
+        //    return res.send({ "status": "FAIL" })
+        //}
 
         if (video === null) {
             console.log("ERROR: /api/video/queue", {

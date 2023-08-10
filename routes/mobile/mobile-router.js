@@ -385,6 +385,7 @@ router.get(
             console.log(info);
             video.encoding_status = info;
             const job = info.job;
+            video.encodingProgress = job.progress.pct || job.progress.download_pct;
             if (job.status === "complete") {
               video.visible_status = "complete";
             } else if (job.status == "running") {

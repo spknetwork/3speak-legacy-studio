@@ -1187,7 +1187,7 @@ router.post("/api/upload/prepare", middleware.requireLogin, middleware.requireId
 
         let video = new mongoDB.Video();
 
-        if (contentCreator.ipfsBeta === true) {
+        // if (contentCreator.ipfsBeta === true) {
             if(global.RESUMABLE_UPLOADS) {
                 upload_type = 'ipfs_resumable'
                 url = global.APP_TUS_ENDPOINT
@@ -1196,18 +1196,18 @@ router.post("/api/upload/prepare", middleware.requireLogin, middleware.requireId
                 url = '/api/upload/video'
                 video.filename = null
             }
-        } else {
-            upload_type = 's3'
-            const myBucket = process.env.WASABI_BUCKET;
-            const signedUrlExpireSeconds = 60 * 6 * 72;
-            url = s3.getSignedUrl('putObject', {
-                Bucket: myBucket,
-                Key: myKey,
-                Expires: signedUrlExpireSeconds,
-                ContentType: 'video/mp4'
-            });
-            video.filename = myKey;
-        }
+        // } else {
+        //     upload_type = 's3'
+        //     const myBucket = process.env.WASABI_BUCKET;
+        //     const signedUrlExpireSeconds = 60 * 6 * 72;
+        //     url = s3.getSignedUrl('putObject', {
+        //         Bucket: myBucket,
+        //         Key: myKey,
+        //         Expires: signedUrlExpireSeconds,
+        //         ContentType: 'video/mp4'
+        //     });
+        //     video.filename = myKey;
+        // }
 
 
         if (req.session.identity.username === "guest-account") {

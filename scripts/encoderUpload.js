@@ -14,6 +14,7 @@ import fetch from '@web-std/fetch'
 import './../page_conf.js';
 import mongoDB from '../mongoDB.js';
 import fs from 'fs'
+import {execa} from 'execa';
 
 const { Ed25519Provider } = Ed25519ProviderImport;
 
@@ -51,10 +52,11 @@ console.log(process.argv)
 
 void (async () => {
     await did.authenticate()
+   
+
 
     const video_id = process.argv.pop();
     const fsPath = process.argv.pop();
-
 
     console.log(fsPath, video_id)
     console.log(mongoDB)
@@ -66,10 +68,13 @@ void (async () => {
     if (video.upload_type === "ipfs") {
         let success = false;
         for(let x = 0; x < 10; x++) {
-            const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
-                //replicationFactorMin: 1,
-                //replicationFactorMax: 2
-            })
+            // const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
+            //     //replicationFactorMin: 1,
+            //     //replicationFactorMax: 2
+            // })
+
+            const {stdout} = await execa('ipfs-cluster-ctl', ['add', fsPath, '-Q', '--raw-leaves'])
+            const cid = CID.parse(stdout)
             try {
                 const { data } = await Axios.post(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/pushJob`, {
                     jws: await did.createJWS({

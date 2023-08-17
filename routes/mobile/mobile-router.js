@@ -375,34 +375,40 @@ router.get(
       video.thumbUrl = video?.thumbnail?.includes("ipfs://")
         ? `${APP_IPFS_GATEWAY}/ipfs/${video.thumbnail.replace("ipfs://", "")}`
         : `${APP_VIDEO_CDN_DOMAIN}/${video.thumbnail}`;
+
+      //Fetch external encoding data.
+      let job;
+      if (video.job_id) {
+        try {
+          const { data: info } = await Axios.get(
+            `${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`
+          );
+          //console.log(info);
+          video.encoding_status = info;
+          job = info.job;
+          video.encodingProgress = job.progress.pct || job.progress.download_pct;
+        } catch (ex) {
+          console.log(ex);
+          video.visible_status = "Status unavailable";
+        }
+      }
       if (video.status === "encoding_ipfs") {
-        //Fetch external encoding data.
-        if (video.job_id) {
-          try {
-            const { data: info } = await Axios.get(
-              `${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`
-            );
-            console.log(info);
-            video.encoding_status = info;
-            const job = info.job;
-            video.encodingProgress = job.progress.pct || job.progress.download_pct;
-            if (job.status === "complete") {
-              video.visible_status = "complete";
-            } else if (job.status == "running") {
-              video.visible_status = `${Math.round(job.progress.pct)}%`;
-            } else if (job.status === "queued") {
-              video.visible_status = `Queued. Position in queue ${info.rank}`;
-            } else if (job.status === "uploading") {
-              video.visible_status = `Finalizing`;
-            } else if (job.status === "failed" || job.status === "encoding_failed") {
-              video.visible_status = `Failed`;
-            } else {
-              video.visible_status = job.status;
-            }
-          } catch (ex) {
-            console.log(ex);
-            video.visible_status = "Status unavailable";
+        if (job) {
+          if (job.status === "complete") {
+            video.visible_status = "complete";
+          } else if (job.status == "running") {
+            video.visible_status = `${Math.round(job.progress.pct)}%`;
+          } else if (job.status === "queued") {
+            video.visible_status = `Queued. Position in queue ${info.rank}`;
+          } else if (job.status === "uploading") {
+            video.visible_status = `Finalizing`;
+          } else if (job.status === "failed" || job.status === "encoding_failed") {
+            video.visible_status = `Failed`;
+          } else {
+            video.visible_status = job.status || "Status unavailable";
           }
+        } else {
+          video.visible_status = "Status unavailable";
         }
       } else {
         if (video.status === "uploaded") {

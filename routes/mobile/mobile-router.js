@@ -534,10 +534,11 @@ router.get("/api/feed/user/@:user", async (req, res) => {
 
 router.get("/api/video/@:user/:permlink", async (req, res) => {
   const queryLimit = 1;
+  let query = {};
   query.owner = req.params.user;
   query.permlink = req.params.permlink;
   const record = await mongoDB.Video.find(query).limit(queryLimit);
-  res.send(record);
+  res.send(record.status);
 });
 router.get("/api/feed/community/@:community", async (req, res) => {
   await sendFeedResponse(req, res, { hive: req.params.community });

@@ -538,7 +538,11 @@ router.get("/api/video/@:user/:permlink", async (req, res) => {
   query.owner = req.params.user;
   query.permlink = req.params.permlink;
   const record = await mongoDB.Video.find(query).limit(queryLimit);
-  res.send(record.status);
+  if (record.length > 0) {
+    res.send({video_status: record[0].status});
+  } else {
+    return res.status(500).json(`Video @${query.owner}/${query.permlink} not found.`)
+  }
 });
 router.get("/api/feed/community/@:community", async (req, res) => {
   await sendFeedResponse(req, res, { hive: req.params.community });

@@ -4,8 +4,8 @@ import config from "./config/index.js";
 
 global.APP_PAGE_DOMAIN = config.host || '3speak.tv';
 global.APP_LIVE_DOMAIN = `live.${config.appPageDomain}`;
-global.APP_STUDIO_DOMAIN = `studio.${config.appPageDomain}`;
-global.APP_SIGNUP_DOMAIN = `auth.${config.appPageDomain}/3/signup`;
+global.APP_STUDIO_DOMAIN = `studio.3speak.tv`;
+global.APP_SIGNUP_DOMAIN = `auth.3speak.tv/3/signup`;
 global.APP_VIDEO_CDN_DOMAIN = 'https://threespeakcontent.b-cdn.net'
 global.APP_AUDIO_CDN_DOMAIN = 'https://audio.cdn.3speakcontent.co'
 global.APP_HIVE_CDN_DOMAIN = 'https://hive.cdn.3speakcontent.co'

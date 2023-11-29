@@ -21,7 +21,7 @@ global.RESUMABLE_UPLOADS = true
 global.APP_ENCODER_ENDPOINT = 'https://encoder-gateway.infra.3speak.tv'
 //global.APP_ENCODER_PRIVATE = config.appEncoderPrivate;
 
-global.HIVE_DEFAULT_NODE = 'api.hive.blog';
+global.HIVE_DEFAULT_NODE = 'hive-api.web3telekom.xyz';
 global.HIVE_DEFAULT_NODE_PREFIX = 'https';
 global.HIVE_SECURE_NODE_PREFIX = 'https';
 

@@ -1553,50 +1553,39 @@ router.post("/api/creator/vote/day", middleware.requireLogin, async (req, res) =
 
 
 router.post('/api/completeIdentityChallenge', middleware.requireLogin, async (req, res) => {
-    let { signed_message, keychain } = req.body;
-
-    const wif_memo = keychain === true ? config.threeSpeakPostWif : config.authWifMemo;
-
-    const wif_pub = config.authPubMemo;
-
+    let { signature, message  } = req.body;
     let contentCreator = await mongoDB.User.findOne({ user_id: req.session.user.user_id });
-
-    function getUserPub(pubkeys) {
-        return pubkeys.pubkey === wif_pub ? pubkeys.otherpub : pubkeys.pubkey
-    }
-
     try {
-        const decoded = hive.memo.decode(wif_memo, signed_message)
-        const message = JSON.parse(decoded.substr(1));
-        const pubKeys = hive.memo.getPubKeys(signed_message)
-
-        const [account] = await hive.api.getAccountsAsync([message.account])
-
+        const message_json = JSON.parse(message);
+        const [account] = await hive.api.getAccountsAsync([message_json.account])
         let signatureValid = false;
-
-        for (const key_auth of account[message.authority].key_auths) {
-            if (key_auth[0] === pubKeys[0]) {
-                signatureValid = true
-            }
+        for (let auth of account.posting.key_auths) {
+            const sigValidity = dhive.PublicKey.fromString(auth[0]).verify(
+                Buffer.from(dhive.cryptoUtils.sha256(message)),
+                dhive.Signature.fromBuffer(Buffer.from(signature, 'hex')),
+              )
+              if (sigValidity) {
+                signatureValid = true;
+              }
         }
 
         if (signatureValid) {
             const challenge = await mongoDB.HiveAccountChallenge.findOne({
-                account: message.account,
+                account: message_json.account,
                 user_id: req.session.user.user_id,
-                challenge: message.message,
-                key: message.authority
+                challenge: message_json.message,
+                key: message_json.authority
             })
 
             if (challenge !== null) {
                 let identity = await mongoDB.HiveAccount.findOne({
-                    account: message.account,
+                    account: message_json.account,
                     user_id: contentCreator._id
                 });
 
                 if (identity === null) {
                     identity = new mongoDB.HiveAccount({
-                        account: message.account,
+                        account: message_json.account,
                         user_id: contentCreator._id
                     });
 
@@ -1605,14 +1594,14 @@ router.post('/api/completeIdentityChallenge', middleware.requireLogin, async (re
 
                 contentCreator.last_identity = identity._id;
 
-                let cc = await mongoDB.ContentCreator.findOne({ username: message.account })
+                let cc = await mongoDB.ContentCreator.findOne({ username: message_json.account })
 
 
                 if (cc != null) {
                     req.session.identity = cc
                 } else {
                     cc = new mongoDB.ContentCreator({
-                        username: message.account,
+                        username: message_json.account,
                         hidden: false
                     });
                     await cc.save();

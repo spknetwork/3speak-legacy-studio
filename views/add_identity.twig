@@ -264,7 +264,7 @@
                                                     url: '/api/completeIdentityChallenge',
                                                     type: 'post',
                                                     data: {
-                                                        signed_message: result.result,
+                                                        signature: result.result,
                                                         message: JSON.stringify(payload),
                                                         keychain: true
                                                     },

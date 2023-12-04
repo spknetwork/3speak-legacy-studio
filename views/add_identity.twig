@@ -258,7 +258,7 @@
                                             account: res.account
                                         }
 
-                                        window.hive_keychain.requestEncodeMessage($('#username').val(), "threespeak", `${JSON.stringify(payload)}`, "Posting", (result) => {
+                                        window.hive_keychain.requestSignBuffer($('#username').val(), `${JSON.stringify(payload)}`, "Posting", (result) => {
                                             if(result.success) {
                                                 $.ajax({
                                                     url: '/api/completeIdentityChallenge',

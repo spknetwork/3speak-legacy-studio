@@ -329,6 +329,28 @@ router.post(
   }
 );
 
+router.get('/api/video/:id/delete', middleware.requireMobileLogin, async (req, res) => {
+    let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
+    const user = userObject.user_id;
+    let { id } = req.params;
+    let video = await mongoDB.Video.findOne({
+        permlink: id,
+        owner: user,
+    });
+
+    if (video === null) {
+      return res.status(500).send({ error: 'Video not found' });
+    }
+
+    video.status = "deleted";
+    video.indexed = false;
+    await video.save();
+    return res.send({ success: true, message: 'Video deleted successfully.' });
+});
+
 router.get(
   "/api/my-videos",
   middleware.requireMobileLogin,
@@ -338,27 +360,12 @@ router.get(
       return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
     }
     const user = userObject.user_id;
-    let query = { owner: user };
-
-    const statusOptions = [
-      "uploaded",
-      "encoding",
-      "published",
-      "deleted",
-      "encoding_failed",
-      "encoding_queued",
-    ];
-    let { status = undefined } = req.query;
-    if (status !== undefined) {
-      if (statusOptions.includes(status)) {
-        query.status = status;
-      }
+    const queryLimit = 50;
+    let skip = req.query.skip;
+    if (skip === null || skip === undefined) {
+      skip = 0;
     }
-
-    if (!query.status) {
-      query.status = { $ne: "uploaded" };
-    }
-
+    let query = { owner: user, status: { $nin: ["uploaded", "deleted"] } };
     let videos = await mongoDB.Video.aggregate([
       {
         $match: query,
@@ -368,7 +375,7 @@ router.get(
           created: -1,
         },
       },
-    ]);
+    ]).skip(skip).limit(queryLimit);
 
     let vidsOut = [];
     for (let video of videos) {

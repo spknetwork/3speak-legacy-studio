@@ -361,7 +361,10 @@ router.get(
     }
     const user = userObject.user_id;
     const queryLimit = 50;
-    let skip = req.query.skip ?? 0;
+    let skip = req.query.skip;
+    if (skip === null || skip === undefined) {
+      skip = 0;
+    }
     let query = { owner: user, status: { $nin: ["uploaded", "deleted"] } };
     let videos = await mongoDB.Video.aggregate([
       {

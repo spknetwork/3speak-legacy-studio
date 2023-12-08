@@ -145,7 +145,7 @@ router.get('/my-videos', middleware.requireLogin, middleware.requireIdentity, as
         query.userId = req.session.user.user_id;
     }
 
-    const statusOptions = ["uploaded", "encoding", "published", "deleted", "encoding_failed", "encoding_queued", "self_deleted"];
+    const statusOptions = ["uploaded", "encoding", "published", "deleted", "encoding_failed", "encoding_queued"];
     let { status = undefined } = req.query;
     if (status !== undefined) {
         if (statusOptions.includes(status)) {
@@ -214,7 +214,7 @@ router.get('/my-videos', middleware.requireLogin, middleware.requireIdentity, as
                 video.visible_status = "Encoding - To Check the status of the encoding please reload the page"
             } else if (video.status === "saving") {
                 video.visible_status = "Finalizing"
-            } else if (video.status === "deleted" || video.status === "self_deleted") {
+            } else if (video.status === "deleted") {
                 video.visible_status = 'Deleted'
             } else if (video.status === "published") {
                 video.visible_status = "Published"
@@ -1310,7 +1310,7 @@ router.get("/api/witness", middleware.requireLogin, async (req, res) => {
 router.get("/dashboard", middleware.requireLogin, middleware.requireIdentity, async (req, res) => {
     const videoCount = await mongoDB.Video.countDocuments({
         owner: req.session.identity.username,
-        status: { $in: ["encoding", "published", "deleted", "self_deleted"] }
+        status: { $in: ["encoding", "published", "deleted"] }
     });
 
     try {

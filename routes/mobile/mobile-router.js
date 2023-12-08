@@ -54,6 +54,24 @@ router.get("/login", async (req, res) => {
       });
     }
 
+    let contentCreator = await mongoDB.User.findOne({user_id: username});
+    if (contentCreator !== null && contentCreator.banned === true) {
+        const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
+        return res.render("banned", {banReason, user: contentCreator.email})
+    }
+
+    let mobileUser = await mongoDB.MobileUser.findOne({
+      user_id: username,
+    });
+    if (mobileUser !== null && mobileUser.banned === true) {
+      const banReason =
+        "You were permanently banned from using 3Speak for violating our Terms of Service.";
+      return res.status(500).send({ error: banReason });
+    } else if (mobileUser !== null && mobileUser.self_deleted === true) {
+      const message =`No 3Speak Account found with name - ${username}`;
+      return res.status(500).send({ error: message });
+    }
+
     if (!req.session.user && access_token === null) {
       let publicKey = null;
       if (client === null) {
@@ -64,8 +82,6 @@ router.get("/login", async (req, res) => {
           const [account] = await hive.api.getAccountsAsync([username]);
           publicKey = account.posting.key_auths[0][0];
         }
-        // instead simple string comparison, we'll have an array of clients along with the public key provided by them
-        // for their trusted clients. once we have those in place, we will update this code.
       } else if (client === "mobile") {
         // mobile client will have private key of following public key. with it, mobile-client will be able to decrypt it
         // it will be used for hive-keychain-based-sessions on mobile-client
@@ -328,6 +344,17 @@ router.post(
     }
   }
 );
+
+router.get("/api/account/delete", middleware.requireMobileLogin, async (req, res) => {
+  let userObject = getUserFromRequest(req);
+  if (userObject === undefined || userObject === null) {
+    return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+  }
+  const user = userObject.user_id;
+  await mongoDB.Video.updateMany({ status: "published", owner: user }, {$set: {status: "self_deleted"}});
+  await mongoDB.MobileUser.findOne({user_id: username}, {self_deleted: true});
+  return res.send({ success: true, message: '3Speak Account Deleted.' });
+});
 
 router.get('/api/video/:id/delete', middleware.requireMobileLogin, async (req, res) => {
     let userObject = getUserFromRequest(req);

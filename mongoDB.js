@@ -125,7 +125,7 @@ const VideoSchema = new mongoose.Schema({
     description: String,
     status: {
         type: String,
-        enum: ["uploaded", "encoding", "saving", "published", "deleted", "encoding_failed", "encoding_queued", "encoding_halted_time", "encoding_queued_vod", "scheduled", "encoding_ipfs", "encoding_preparing", "publish_manual"],
+        enum: ["uploaded", "encoding", "saving", "published", "deleted", "encoding_failed", "encoding_queued", "encoding_halted_time", "encoding_queued_vod", "scheduled", "encoding_ipfs", "encoding_preparing", "publish_manual", "self_deleted"],
         default: 'uploaded',
         required: true
     },
@@ -289,6 +289,7 @@ const InboxVerificationSchema = new mongoose.Schema({
 const UserSchema = {
     user_id: {type: String, required: true, unique: true},
     banned: {type: Boolean, required: true, default: false},
+    self_deleted: {type: Boolean, required: true, default: false},
     email: {type: String, required: true, unique: true},
     last_identity: mongoose.ObjectId,
     display_name: String //fallback for non blockchain user
@@ -298,6 +299,7 @@ const MobileUserSchema = {
     user_id: {type: String, required: true, unique: true},
     network: {type: String, required: true, default: 'hive'},
     banned: {type: Boolean, required: true, default: false},
+    self_deleted: {type: Boolean, required: true, default: false},
 }
 
 const MobileUserPushTokenSchema = {

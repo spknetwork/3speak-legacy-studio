@@ -42,6 +42,9 @@ async function requireMobileLogin(req, res, next) {
       const banReason =
         "You were permanently banned from using 3Speak for violating our Terms of Service.";
       return res.status(500).send({ error: banReason });
+    } else if (contentCreator !== null && contentCreator.self_deleted === true) {
+      const message =`No 3Speak Account found with name - ${username}`;
+      return res.status(500).send({ error: message });
     }
 
     if (mobileUser === null) {

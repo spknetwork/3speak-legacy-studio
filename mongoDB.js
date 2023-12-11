@@ -289,6 +289,7 @@ const InboxVerificationSchema = new mongoose.Schema({
 const UserSchema = {
     user_id: {type: String, required: true, unique: true},
     banned: {type: Boolean, required: true, default: false},
+    self_deleted: {type: Boolean, required: true, default: false},
     email: {type: String, required: true, unique: true},
     last_identity: mongoose.ObjectId,
     display_name: String //fallback for non blockchain user

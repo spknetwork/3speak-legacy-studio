@@ -58,6 +58,9 @@ router.get("/login", async (req, res) => {
     if (contentCreator !== null && contentCreator.banned === true) {
         const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
         return res.render("banned", {banReason, user: contentCreator.email})
+    } else if (contentCreator !== null && contentCreator.self_deleted === true) {
+      const message =`No 3Speak Account found with name - ${username}`;
+      return res.status(500).send({ error: message });
     }
 
     let mobileUser = await mongoDB.MobileUser.findOne({
@@ -353,6 +356,7 @@ router.get("/api/account/delete", middleware.requireMobileLogin, async (req, res
   const user = userObject.user_id;
   await mongoDB.Video.updateMany({ status: "published", owner: user }, {$set: {status: "self_deleted"}});
   await mongoDB.MobileUser.findOne({user_id: username}, {self_deleted: true});
+  await mongoDB.User.findOne({user_id: username}, {self_deleted: true});
   return res.send({ success: true, message: '3Speak Account Deleted.' });
 });
 

@@ -50,7 +50,10 @@ async function requireLogin(req, res, next) {
             const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
             // req.session.destroy();
             return res.render("banned", {banReason, user: contentCreator.email}) //TODO change to grab currently attached identity
-        }
+        }  else if (contentCreator !== null && contentCreator.self_deleted === true) {
+            const message =`No 3Speak Account found with name - ${username}`;
+            return res.status(500).send({ error: message });
+          }
 
         // try {
         //     let blacklist = await (await fetch("http://blacklist.usesteem.com/user/" + req.session.user)).json();

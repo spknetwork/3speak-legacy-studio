@@ -289,7 +289,7 @@ const InboxVerificationSchema = new mongoose.Schema({
 const UserSchema = {
     user_id: {type: String, required: true, unique: true},
     banned: {type: Boolean, required: true, default: false},
-    self_deleted: {type: Boolean, required: true, default: false},
+    self_deleted: {type: Boolean, required: false, default: false},
     email: {type: String, required: true, unique: true},
     last_identity: mongoose.ObjectId,
     display_name: String //fallback for non blockchain user
@@ -299,7 +299,7 @@ const MobileUserSchema = {
     user_id: {type: String, required: true, unique: true},
     network: {type: String, required: true, default: 'hive'},
     banned: {type: Boolean, required: true, default: false},
-    self_deleted: {type: Boolean, required: true, default: false},
+    self_deleted: {type: Boolean, required: false, default: false},
 }
 
 const MobileUserPushTokenSchema = {

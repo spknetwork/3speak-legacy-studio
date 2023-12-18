@@ -347,7 +347,16 @@ const PodcastSchema = new mongoose.Schema({
     podcast_languages: Array
 });
 
-
+const PodcastEpisodeSchema = new mongoose.Schema({
+    id: {type: String , required: true},
+    title: {type: String , required: true},
+    link: {type: String , required: true},
+    description: {type: String , required: true},
+    enclosureUrl: {type: String , required: true},
+    duration: {type: Number, required: true},
+    episode: {type: Number, required: true},
+    image: {type: Number, required: true},
+});
 
 const VideoBoost = mongoose.model("VideoBoost", VideoBoostSchema);
 const ChatBotToken = mongoose.model("ChatBotToken", ChatBotTokenSchema);
@@ -378,7 +387,7 @@ const InboxVerification = mongoose.model('InboxVerification', InboxVerificationS
 const Donation = mongoose.model('Donation', DonationSchema);
 const DonationAccountTypes = mongoose.model('DonationAccountTypes', DonationAccountTypesSchema)
 const Podcast = mongoose.model('Podcast', PodcastSchema)
-
+const PodcastEpisode = mongoose.model('PodcastEpisode', PodcastEpisodeSchema)
 
 async function updateBalance(user) {
     const tx = await Transaction.aggregate([

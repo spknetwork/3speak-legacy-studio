@@ -651,7 +651,7 @@ router.get(
       }
       podcastEpisode.status = "publish_manual";
       await podcastEpisode.save();
-      podcastEpisode.send(video);
+      res.send(podcastEpisode);
     } catch (e) {
       console.log("ERROR: /api/podcast/add", {
         username: userObject.user_id,
@@ -676,7 +676,7 @@ router.post(
     console.log(`episode id is ${episodeId}`);
     let podcastEpisode = await mongoDB.PodcastEpisode.findOne({ owner: user, _id: episodeId });
     if (!podcastEpisode) {
-      return res.status(500).send({ error: "video not found" });
+      return res.status(500).send({ error: "Podcast Episode not found" });
     }
     if (podcastEpisode.status === "published") {
       return res.send({ success: true, data: podcastEpisode });
@@ -686,8 +686,8 @@ router.post(
         await middleware.hasValidPostBeneficiariesAndPayout(podcastEpisode.owner, podcastEpisode.permlink);
       if (doesPostHaveValidBeneficiaries) {
         podcastEpisode.status = "published";
-        await video.save();
-        return res.send({ success: true, data: video });
+        await podcastEpisode.save();
+        return res.send({ success: true, data: podcastEpisode });
       } else {
         podcastEpisode.status = "beneficiary_check_failed";
         await podcastEpisode.save();
@@ -695,7 +695,7 @@ router.post(
       }
     } catch (e) {
       // upon not finding data on hive-chain, it will simply throw an error to client.
-      // it won't mark video as failed.
+      // it won't mark podcastEpisode as failed.
       console.error(e.message);
       return res.status(500).send({ error: e });
     }

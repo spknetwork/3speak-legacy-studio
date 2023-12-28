@@ -587,7 +587,7 @@ router.get("/api/feed/community/@:community", async (req, res) => {
   await sendFeedResponse(req, res, { hive: req.params.community });
 });
 
-router.get(
+router.post(
   "/api/podcast/add",
   middleware.requireMobileLogin,
   async (req, res) => {
@@ -598,6 +598,7 @@ router.get(
           "Either session/token expired or session/token not found in request.",
       });
     }
+    console.log(`request body: ${JSON.stringify(req.body)}`);
     try {
       let podcastEpisode = new mongoDB.PodcastEpisode();
       let podcastEpisodeCount = await mongoDB.PodcastEpisode.countDocuments({
@@ -612,13 +613,25 @@ router.get(
         .toLowerCase();
       podcastEpisode.duration = parseFloat(req.body.duration);
       podcastEpisode.size = parseFloat(req.body.size);
-      podcastEpisode.episodeNumber = parseFloat(req.body.episodeNumber);
+      // podcastEpisode.episodeNumber = parseFloat(req.body.episodeNumber);
+      podcastEpisode.isNsfwContent = req.body.isNsfwContent;
       podcastEpisode.owner = req.body.owner;
       podcastEpisode.title = req.body.title;
       podcastEpisode.description = req.body.description;
       podcastEpisode.created = Date.now();
       podcastEpisode.status = "uploaded";
-      await podcastEpisode.save();
+      if (
+        typeof req.body.communityID === "string" &&
+        req.body.communityID.length > 0
+      ) {
+        podcastEpisode.community = req.body.communityID;
+      }
+      if (typeof req.body.rewardPowerup === "boolean") {
+        podcastEpisode.rewardPowerup = req.body.rewardPowerup;
+      }
+      if (typeof req.body.declineRewards === "boolean") {
+        podcastEpisode.declineRewards = req.body.declineRewards;
+      }
       // thumbnail upload
       const thumbnail = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`);
       const { cid: thumbnailCid } = await cluster.addData(
@@ -644,7 +657,8 @@ router.get(
       );
       fs.unlinkSync(episode);
       podcastEpisode.enclosureUrl = `ipfs://${episodeCid}`;
-      if (app === null) {
+      const { app = null } = req.query;
+      if (app === null || app === undefined) {
         podcastEpisode.fromMobile = true;
       } else {
         podcastEpisode.app = app;

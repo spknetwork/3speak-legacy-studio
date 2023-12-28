@@ -348,7 +348,6 @@ const PodcastSchema = new mongoose.Schema({
 });
 
 const PodcastEpisodeSchema = new mongoose.Schema({
-  id: { type: String, required: true },
   owner: { type: String, required: true },
   permlink: { type: String, required: true },
   originalFilename: { type: String, required: false },
@@ -358,9 +357,14 @@ const PodcastEpisodeSchema = new mongoose.Schema({
   enclosureUrl: { type: String, required: true },
   duration: { type: Number, required: true },
   size: { type: Number, required: false },
-  episodeNumber: { type: Number, required: true },
+//   episodeNumber: { type: Number, required: true },
   firstPodcastEpisode: { type: Number, required: false },
   created: { type: Date, required: true, default: Date.now() },
+  community: { type: String, required: false },
+  rewardPowerup: {type: Boolean, default: false},
+  declineRewards: {type: Boolean, default: false},
+  isNsfwContent: {type: Boolean, default: false},
+  language: {type: String, required: false, default: "en"},
   status: {
     type: String,
     enum: [

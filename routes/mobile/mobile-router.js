@@ -665,7 +665,11 @@ router.post(
       }
       podcastEpisode.status = "publish_manual";
       await podcastEpisode.save();
-      res.send(podcastEpisode);
+      let responseData = {
+        ...podcastEpisode,
+      };
+      delete responseData["enclosureUrl"];
+      res.send(responseData);
     } catch (e) {
       console.log("ERROR: /api/podcast/add", {
         username: userObject.user_id,

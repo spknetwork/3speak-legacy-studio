@@ -424,7 +424,11 @@ router.get(
           //console.log(info);
           video.encoding_status = info;
           job = info.job;
-          video.encodingProgress = job.progress.pct || job.progress.download_pct;
+          if (job.progress.pct !== undefined && job.progress.pct !== null) {
+            video.encodingProgress = job.progress.pct;
+          } else if (job.progress.download_pct !== undefined && job.progress.download_pct !== null) {
+            video.encodingProgress = job.progress.download_pct;
+          }
         } catch (ex) {
           console.log(ex);
           video.visible_status = "Status unavailable";

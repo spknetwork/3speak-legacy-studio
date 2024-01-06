@@ -672,7 +672,6 @@ router.post(
       let responseData = {
         ...podcastEpisode,
       };
-      delete responseData["enclosureUrl"];
       res.send(responseData);
     } catch (e) {
       console.log("ERROR: /api/podcast/add", {

@@ -134,6 +134,10 @@
             }
         }
 
+        function signBuffer(message, wif) {
+            return hive.auth.signMessage(message, wif);
+        }
+
         $(() => {
 
             $('#connectHive').click(() => {
@@ -157,8 +161,12 @@
                         authority: 'active'
                     },
                     success: res => {
-                        let signed_message = sign(res.challenge, $('#wif_2_5').val(), account, 'active')
-
+                        const payload = {
+                            message: res.challenge,
+                            authority: "active",
+                            account: $('#username').val(),
+                        };
+                        let signed_message = signBuffer(JSON.stringify(payload), $('#wif_2_5').val())
                         if (signed_message === false) {
                             $('#wif_2_5_error').removeClass('d-none')
                             if (hive.auth.isPubkey($('#wif_2_5').val())) {
@@ -182,8 +190,10 @@
                                 $.ajax({
                                     url: '/api/completeIdentityChallenge',
                                     type: 'post',
-                                    data: {
-                                        signed_message
+                                    data:  {
+                                        signature: signed_message,
+                                        message: JSON.stringify(payload),
+                                        keychain: false
                                     },
                                     success: res => {
                                         if (res.success === true) {
@@ -210,13 +220,19 @@
                         authority: 'posting'
                     },
                     success: res => {
-                        console.log(res.challenge, $('#wif_2').val(), account, 'posting')
-                        let signed_message = sign(res.challenge, $('#wif_2').val(), account, 'posting')
+                        const payload = {
+                            message: res.challenge,
+                            authority: "posting",
+                            account: $('#username').val()
+                        };
+                        let signed_message = signBuffer(JSON.stringify(payload), $('#wif_2').val())
                         $.ajax({
                             url: '/api/completeIdentityChallenge',
                             type: 'post',
                             data: {
-                                signed_message
+                                signature: signed_message,
+                                message: JSON.stringify(payload),
+                                keychain: false
                             },
                             success: res => {
                                 if (res.success === true) {

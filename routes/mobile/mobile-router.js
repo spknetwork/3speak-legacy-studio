@@ -619,7 +619,7 @@ router.post(
       podcastEpisode.size = parseFloat(req.body.size);
       // podcastEpisode.episodeNumber = parseFloat(req.body.episodeNumber);
       podcastEpisode.isNsfwContent = req.body.isNsfwContent;
-      podcastEpisode.owner = req.body.owner;
+      podcastEpisode.owner = userObject.user_id;
       podcastEpisode.title = req.body.title;
       podcastEpisode.description = req.body.description;
       podcastEpisode.created = Date.now();
@@ -629,12 +629,6 @@ router.post(
         req.body.communityID.length > 0
       ) {
         podcastEpisode.community = req.body.communityID;
-      }
-      if (typeof req.body.rewardPowerup === "boolean") {
-        podcastEpisode.rewardPowerup = req.body.rewardPowerup;
-      }
-      if (typeof req.body.declineRewards === "boolean") {
-        podcastEpisode.declineRewards = req.body.declineRewards;
       }
       // thumbnail upload
       const thumbnail = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`);
@@ -669,8 +663,15 @@ router.post(
       }
       podcastEpisode.status = "publish_manual";
       await podcastEpisode.save();
-      let responseData = {
-        ...podcastEpisode,
+      const responseData = {
+        id: podcastEpisode._id,
+        permlink: podcastEpisode.permlink,
+        title: podcastEpisode.title,
+        description: podcastEpisode.description,
+        community: podcastEpisode.community,
+        thumbnail: podcastEpisode.thumbnail,
+        firstUpload: podcastEpisode.firstPodcastEpisode,
+        enclosureUrl: podcastEpisode.enclosureUrl,
       };
       res.send(responseData);
     } catch (e) {

@@ -357,12 +357,9 @@ const PodcastEpisodeSchema = new mongoose.Schema({
   enclosureUrl: { type: String, required: true },
   duration: { type: Number, required: true },
   size: { type: Number, required: false },
-//   episodeNumber: { type: Number, required: true },
   firstPodcastEpisode: { type: Number, required: false },
   created: { type: Date, required: true, default: Date.now() },
   community: { type: String, required: false },
-  rewardPowerup: {type: Boolean, default: false},
-  declineRewards: {type: Boolean, default: false},
   isNsfwContent: {type: Boolean, default: false},
   language: {type: String, required: false, default: "en"},
   status: {

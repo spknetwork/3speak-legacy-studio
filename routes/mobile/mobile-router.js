@@ -608,9 +608,7 @@ router.post(
       let podcastEpisodeCount = await mongoDB.PodcastEpisode.countDocuments({
         owner: userObject.user_id,
       });
-      if (podcastEpisodeCount === 0) {
-        podcastEpisode.firstPodcastEpisode = true;
-      }
+      podcastEpisode.firstPodcastEpisode = podcastEpisodeCount === 0 ? true : false;
       podcastEpisode.originalFilename = req.body.oFilename;
       podcastEpisode.permlink = randomstring
         .generate({ length: 10, charset: "alphabetic" })

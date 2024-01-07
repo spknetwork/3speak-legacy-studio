@@ -424,7 +424,11 @@ router.get(
           //console.log(info);
           video.encoding_status = info;
           job = info.job;
-          video.encodingProgress = job.progress.pct || job.progress.download_pct;
+          if (job.progress.pct !== undefined && job.progress.pct !== null) {
+            video.encodingProgress = job.progress.pct;
+          } else if (job.progress.download_pct !== undefined && job.progress.download_pct !== null) {
+            video.encodingProgress = job.progress.download_pct;
+          }
         } catch (ex) {
           console.log(ex);
           video.visible_status = "Status unavailable";
@@ -582,8 +586,139 @@ router.get("/api/video/@:user/:permlink", async (req, res) => {
     return res.status(500).json(`Video @${query.owner}/${query.permlink} not found.`)
   }
 });
+
 router.get("/api/feed/community/@:community", async (req, res) => {
   await sendFeedResponse(req, res, { hive: req.params.community });
 });
 
+router.post(
+  "/api/podcast/add",
+  middleware.requireMobileLogin,
+  async (req, res) => {
+    let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({
+        error:
+          "Either session/token expired or session/token not found in request.",
+      });
+    }
+    console.log(`request body: ${JSON.stringify(req.body)}`);
+    try {
+      let podcastEpisode = new mongoDB.PodcastEpisode();
+      let podcastEpisodeCount = await mongoDB.PodcastEpisode.countDocuments({
+        owner: userObject.user_id,
+      });
+      podcastEpisode.firstPodcastEpisode = podcastEpisodeCount === 0 ? true : false;
+      podcastEpisode.originalFilename = req.body.oFilename;
+      podcastEpisode.permlink = randomstring
+        .generate({ length: 10, charset: "alphabetic" })
+        .toLowerCase();
+      podcastEpisode.duration = parseFloat(req.body.duration);
+      podcastEpisode.size = parseFloat(req.body.size);
+      // podcastEpisode.episodeNumber = parseFloat(req.body.episodeNumber);
+      podcastEpisode.isNsfwContent = req.body.isNsfwContent;
+      podcastEpisode.owner = userObject.user_id;
+      podcastEpisode.title = req.body.title;
+      podcastEpisode.description = req.body.description;
+      podcastEpisode.created = Date.now();
+      podcastEpisode.status = "uploaded";
+      if (
+        typeof req.body.communityID === "string" &&
+        req.body.communityID.length > 0
+      ) {
+        podcastEpisode.community = req.body.communityID;
+      }
+      // thumbnail upload
+      const thumbnail = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`);
+      const { cid: thumbnailCid } = await cluster.addData(
+        fs.createReadStream(thumbnail),
+        {
+          metadata: {
+            key: `${podcastEpisode.owner}/${podcastEpisode.permlink}/thumbnail`,
+          },
+        }
+      );
+      fs.unlinkSync(thumbnail);
+      podcastEpisode.thumbnail = `ipfs://${thumbnailCid}`;
+
+      // podcast episode upload
+      const episode = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.episode}`);
+      const { cid: episodeCid } = await cluster.addData(
+        fs.createReadStream(episode),
+        {
+          metadata: {
+            key: `${podcastEpisode.owner}/${podcastEpisode.permlink}/episode`,
+          },
+        }
+      );
+      fs.unlinkSync(episode);
+      podcastEpisode.enclosureUrl = `ipfs://${episodeCid}`;
+      const { app = null } = req.query;
+      if (app === null || app === undefined) {
+        podcastEpisode.fromMobile = true;
+      } else {
+        podcastEpisode.app = app;
+      }
+      podcastEpisode.status = "publish_manual";
+      await podcastEpisode.save();
+      const responseData = {
+        id: podcastEpisode._id,
+        permlink: podcastEpisode.permlink,
+        title: podcastEpisode.title,
+        description: podcastEpisode.description,
+        community: podcastEpisode.community,
+        thumbnail: podcastEpisode.thumbnail,
+        firstUpload: podcastEpisode.firstPodcastEpisode,
+        enclosureUrl: podcastEpisode.enclosureUrl,
+      };
+      res.send(responseData);
+    } catch (e) {
+      console.log("ERROR: /api/podcast/add", {
+        username: userObject.user_id,
+      });
+      console.log(e);
+      return res.status(500).send({ error: `Error is ${e.toString()}` });
+    }
+  }
+);
+
+router.post(
+  "/api/podcast/iPublished",
+  middleware.requireMobileLogin,
+  async (req, res) => {
+    let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
+    const user = userObject.user_id;
+    console.log(`User name is ${user}`);
+    const episodeId = req.body.episodeId;
+    console.log(`episode id is ${episodeId}`);
+    let podcastEpisode = await mongoDB.PodcastEpisode.findOne({ owner: user, _id: episodeId });
+    if (!podcastEpisode) {
+      return res.status(500).send({ error: "Podcast Episode not found" });
+    }
+    if (podcastEpisode.status === "published") {
+      return res.send({ success: true, data: podcastEpisode });
+    }
+    try {
+      const doesPostHaveValidBeneficiaries =
+        await middleware.hasValidPostBeneficiariesAndPayout(podcastEpisode.owner, podcastEpisode.permlink);
+      if (doesPostHaveValidBeneficiaries) {
+        podcastEpisode.status = "published";
+        await podcastEpisode.save();
+        return res.send({ success: true, data: podcastEpisode });
+      } else {
+        podcastEpisode.status = "beneficiary_check_failed";
+        await podcastEpisode.save();
+        res.status(500).send({ error: 'Insufficient beneficiaries found.' });
+      }
+    } catch (e) {
+      // upon not finding data on hive-chain, it will simply throw an error to client.
+      // it won't mark podcastEpisode as failed.
+      console.error(e.message);
+      return res.status(500).send({ error: e });
+    }
+  }
+);
 export default router;

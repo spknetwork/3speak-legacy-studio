@@ -30,7 +30,7 @@ async function requireMobileLogin(req, res, next) {
         "You were permanently banned from using 3Speak for violating our Terms of Service.";
       return res.status(500).send({ error: banReason });
     } else if (mobileUser !== null && mobileUser.self_deleted === true) {
-      const banReason =`No 3Speak Account found with name - ${username}`;
+      const banReason = `No 3Speak Account found with name - ${username}`;
       return res.status(500).send({ error: banReason });
     }
 
@@ -42,8 +42,11 @@ async function requireMobileLogin(req, res, next) {
       const banReason =
         "You were permanently banned from using 3Speak for violating our Terms of Service.";
       return res.status(500).send({ error: banReason });
-    } else if (contentCreator !== null && contentCreator.self_deleted === true) {
-      const message =`No 3Speak Account found with name - ${username}`;
+    } else if (
+      contentCreator !== null &&
+      contentCreator.self_deleted === true
+    ) {
+      const message = `No 3Speak Account found with name - ${username}`;
       return res.status(500).send({ error: message });
     }
 
@@ -88,16 +91,22 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
     const video = await mongoDB.Video.findOne({
       permlink: permlink,
     });
-    if (video === null) {
-      throw new Error("Video not found");
+    const audio = await mongoDB.PodcastEpisode.findOne({
+      permlink: permlink,
+    });
+    if (video === null && audio === null) {
+      throw new Error("Post not found on 3Speak");
     }
     if (
+      video !== null &&
+      video !== undefined &&
       video.declineRewards === true &&
       content.max_accepted_payout === "0.000 HBD"
     ) {
       return true;
     }
-    const fromMobile = video.fromMobile;
+    const fromMobile =
+      video !== null && video !== undefined ? video.fromMobile : true;
     const sagar = beneficiaries.filter((o) => o.account === "sagarkothari88");
     const spkBeneficiary = beneficiaries.filter(
       (o) => o.account === "spk.beneficiary"

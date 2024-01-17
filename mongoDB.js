@@ -125,7 +125,7 @@ const VideoSchema = new mongoose.Schema({
     description: String,
     status: {
         type: String,
-        enum: ["uploaded", "encoding", "saving", "published", "deleted", "encoding_failed", "encoding_queued", "encoding_halted_time", "encoding_queued_vod", "scheduled", "encoding_ipfs", "encoding_preparing", "publish_manual", "self_deleted"],
+        enum: ["uploaded", "encoding", "saving", "published", "deleted", "encoding_failed", "encoding_queued", "encoding_halted_time", "encoding_queued_vod", "scheduled", "encoding_ipfs", "encoding_preparing", "publish_manual", "self_deleted", "beneficiary_check_failed"],
         default: 'uploaded',
         required: true
     },
@@ -177,6 +177,7 @@ const VideoSchema = new mongoose.Schema({
     app: {type: String},
     width: {type: Number, default: null, required: false},     
     height: {type: Number, default: null, required: false},
+    isAudio: {type: Boolean, default: false},
 });
 const SubscriptionSchema = new mongoose.Schema({
     userId: {type: String, required: true},
@@ -347,36 +348,6 @@ const PodcastSchema = new mongoose.Schema({
     podcast_languages: Array
 });
 
-const PodcastEpisodeSchema = new mongoose.Schema({
-  owner: { type: String, required: true },
-  permlink: { type: String, required: true },
-  originalFilename: { type: String, required: false },
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  thumbnail: { type: String, required: true },
-  enclosureUrl: { type: String, required: true },
-  duration: { type: Number, required: true },
-  size: { type: Number, required: false },
-  firstPodcastEpisode: { type: Number, required: false },
-  created: { type: Date, required: true, default: Date.now() },
-  community: { type: String, required: false },
-  isNsfwContent: {type: Boolean, default: false},
-  language: {type: String, required: false, default: "en"},
-  status: {
-    type: String,
-    enum: [
-      "uploaded",
-      "published",
-      "deleted",
-      "publish_manual",
-      "self_deleted",
-      "beneficiary_check_failed",
-    ],
-    default: "uploaded",
-    required: true,
-  },
-});
-
 const VideoBoost = mongoose.model("VideoBoost", VideoBoostSchema);
 const ChatBotToken = mongoose.model("ChatBotToken", ChatBotTokenSchema);
 const HiveAccountChallenge = mongoose.model("HiveAccountChallenge", HiveAccountChallengeSchema);
@@ -406,7 +377,6 @@ const InboxVerification = mongoose.model('InboxVerification', InboxVerificationS
 const Donation = mongoose.model('Donation', DonationSchema);
 const DonationAccountTypes = mongoose.model('DonationAccountTypes', DonationAccountTypesSchema)
 const Podcast = mongoose.model('Podcast', PodcastSchema)
-const PodcastEpisode = mongoose.model('PodcastEpisode', PodcastEpisodeSchema)
 
 async function updateBalance(user) {
     const tx = await Transaction.aggregate([
@@ -507,5 +477,4 @@ export default {
   Donation,
   DonationAccountTypes,
   Podcast,
-  PodcastEpisode,
 };

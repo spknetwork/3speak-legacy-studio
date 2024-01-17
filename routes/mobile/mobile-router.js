@@ -595,8 +595,9 @@ router.post(
   "/api/podcast/add",
   middleware.requireMobileLogin,
   async (req, res) => {
-    let userObject = getUserFromRequest(req);
-    if (userObject === undefined || userObject === null) {
+    let user = getUserFromRequest(req);
+    const { app = null } = req.query;
+    if (user === undefined || user === null) {
       return res.status(500).send({
         error:
           "Either session/token expired or session/token not found in request.",
@@ -604,29 +605,32 @@ router.post(
     }
     console.log(`request body: ${JSON.stringify(req.body)}`);
     try {
-      let podcastEpisode = new mongoDB.PodcastEpisode();
-      let podcastEpisodeCount = await mongoDB.PodcastEpisode.countDocuments({
-        owner: userObject.user_id,
+      let video = new mongoDB.Video();
+      let videoCount = await mongoDB.Video.countDocuments({
+        owner: user.user_id,
       });
-      podcastEpisode.firstPodcastEpisode = podcastEpisodeCount === 0 ? true : false;
-      podcastEpisode.originalFilename = req.body.oFilename;
-      podcastEpisode.permlink = randomstring
+      video.firstUpload = videoCount === 0 ? true : false;
+      video.originalFilename = req.body.oFilename;
+      video.local_filename = req.body.oFilename;
+      video.permlink = randomstring
         .generate({ length: 10, charset: "alphabetic" })
         .toLowerCase();
-      podcastEpisode.duration = parseFloat(req.body.duration);
-      podcastEpisode.size = parseFloat(req.body.size);
-      // podcastEpisode.episodeNumber = parseFloat(req.body.episodeNumber);
-      podcastEpisode.isNsfwContent = req.body.isNsfwContent;
-      podcastEpisode.owner = userObject.user_id;
-      podcastEpisode.title = req.body.title;
-      podcastEpisode.description = req.body.description;
-      podcastEpisode.created = Date.now();
-      podcastEpisode.status = "uploaded";
+        video.duration = parseFloat(req.body.duration);
+        video.size = parseFloat(req.body.size);
+      video.owner = user.user_id;
+      video.created = Date.now();
+      video.title = req.body.title;
+      video.description = req.body.description;
+      video.isNsfwContent = req.body.isNsfwContent;
+      video.upload_type = "ipfs";
+      video.status = "uploaded";
+      video.isReel = false;
+      video.isAudio = true;
       if (
         typeof req.body.communityID === "string" &&
         req.body.communityID.length > 0
       ) {
-        podcastEpisode.community = req.body.communityID;
+        video.community = req.body.communityID;
       }
       // thumbnail upload
       const thumbnail = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`);
@@ -634,12 +638,17 @@ router.post(
         fs.createReadStream(thumbnail),
         {
           metadata: {
-            key: `${podcastEpisode.owner}/${podcastEpisode.permlink}/thumbnail`,
+            key: `${video.owner}/${video.permlink}/thumbnail`,
           },
         }
       );
       fs.unlinkSync(thumbnail);
-      podcastEpisode.thumbnail = `ipfs://${thumbnailCid}`;
+      video.thumbnail = `ipfs://${thumbnailCid}`;
+      if (app === null) {
+        video.fromMobile = true;
+      } else {
+        video.app = app;
+      }
 
       // podcast episode upload
       const episode = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.episode}`);
@@ -647,29 +656,23 @@ router.post(
         fs.createReadStream(episode),
         {
           metadata: {
-            key: `${podcastEpisode.owner}/${podcastEpisode.permlink}/episode`,
+            key: `${video.owner}/${video.permlink}/episode`,
           },
         }
       );
       fs.unlinkSync(episode);
-      podcastEpisode.enclosureUrl = `ipfs://${episodeCid}`;
-      const { app = null } = req.query;
-      if (app === null || app === undefined) {
-        podcastEpisode.fromMobile = true;
-      } else {
-        podcastEpisode.app = app;
-      }
-      podcastEpisode.status = "publish_manual";
-      await podcastEpisode.save();
+      video.video_v2 = `ipfs://${episodeCid}?filename=${req.body.oFilename}`;
+      video.status = "publish_manual";
+      await video.save();
       const responseData = {
-        id: podcastEpisode._id,
-        permlink: podcastEpisode.permlink,
-        title: podcastEpisode.title,
-        description: podcastEpisode.description,
-        community: podcastEpisode.community,
-        thumbnail: podcastEpisode.thumbnail,
-        firstUpload: podcastEpisode.firstPodcastEpisode,
-        enclosureUrl: podcastEpisode.enclosureUrl,
+        id: video._id,
+        permlink: video.permlink,
+        title: video.title,
+        description: video.description,
+        community: video.community,
+        thumbnail: video.thumbnail,
+        firstUpload: video.firstPodcastEpisode,
+        enclosureUrl: video.video_v2,
       };
       res.send(responseData);
     } catch (e) {
@@ -686,31 +689,41 @@ router.post(
   "/api/podcast/iPublished",
   middleware.requireMobileLogin,
   async (req, res) => {
-    let userObject = getUserFromRequest(req);
-    if (userObject === undefined || userObject === null) {
+    let user = getUserFromRequest(req);
+    if (user === undefined || user === null) {
       return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
     }
-    const user = userObject.user_id;
+    user = user.user_id;
     console.log(`User name is ${user}`);
     const episodeId = req.body.episodeId;
     console.log(`episode id is ${episodeId}`);
-    let podcastEpisode = await mongoDB.PodcastEpisode.findOne({ owner: user, _id: episodeId });
-    if (!podcastEpisode) {
+    let video = await mongoDB.Video.findOne({ owner: user, _id: episodeId });
+    if (!video) {
       return res.status(500).send({ error: "Podcast Episode not found" });
     }
-    if (podcastEpisode.status === "published") {
-      return res.send({ success: true, data: podcastEpisode });
+    const responseData = {
+      id: video._id,
+      permlink: video.permlink,
+      title: video.title,
+      description: video.description,
+      community: video.community,
+      thumbnail: video.thumbnail,
+      firstUpload: video.firstPodcastEpisode,
+      enclosureUrl: video.video_v2,
+    };
+    if (video.status === "published") {
+      return res.send({ success: true, data: responseData });
     }
     try {
       const doesPostHaveValidBeneficiaries =
-        await middleware.hasValidPostBeneficiariesAndPayout(podcastEpisode.owner, podcastEpisode.permlink);
+        await middleware.hasValidPostBeneficiariesAndPayout(video.owner, video.permlink);
       if (doesPostHaveValidBeneficiaries) {
-        podcastEpisode.status = "published";
-        await podcastEpisode.save();
-        return res.send({ success: true, data: podcastEpisode });
+        video.status = "published";
+        await video.save();
+        return res.send({ success: true, data: responseData });
       } else {
-        podcastEpisode.status = "beneficiary_check_failed";
-        await podcastEpisode.save();
+        video.status = "beneficiary_check_failed";
+        await video.save();
         res.status(500).send({ error: 'Insufficient beneficiaries found.' });
       }
     } catch (e) {

@@ -410,6 +410,11 @@
                 if ("{{ contentCreator.username }}" === user) {
                     error = 'You cannot set yourself as a beneficiary'
                 }
+
+                if (beneficiaries.length > 5) {
+                    error = 'You can not add more than FIVE beneficiaries'
+                }
+
                 let total = reservedWeight + weight;
                 beneficiaries.forEach((t, e) => {
                     total += t.weight;

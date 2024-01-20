@@ -91,10 +91,7 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
     const video = await mongoDB.Video.findOne({
       permlink: permlink,
     });
-    const audio = await mongoDB.PodcastEpisode.findOne({
-      permlink: permlink,
-    });
-    if (video === null && audio === null) {
+    if (video === null) {
       throw new Error("Post not found on 3Speak");
     }
     if (

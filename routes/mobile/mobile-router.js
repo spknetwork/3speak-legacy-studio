@@ -662,6 +662,7 @@ router.post(
       );
       fs.unlinkSync(episode);
       video.video_v2 = `ipfs://${episodeCid}?filename=${req.body.oFilename}`;
+      video.filename = video.video_v2;
       video.status = "publish_manual";
       await video.save();
       const responseData = {

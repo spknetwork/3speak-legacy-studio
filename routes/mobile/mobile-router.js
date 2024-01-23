@@ -292,8 +292,8 @@ router.post(
           metadata: {
             key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
           },
-          replicationFactorMin: 2,
-          replicationFactorMax: 3,
+          // replicationFactorMin: 2,
+          // replicationFactorMax: 3,
         }
       );
       fs.unlinkSync(thumbnail);
@@ -334,8 +334,8 @@ router.post(
           metadata: {
             key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
           },
-          replicationFactorMin: 2,
-          replicationFactorMax: 3,
+          // replicationFactorMin: 2,
+          // replicationFactorMax: 3,
         }
       );
       fs.unlinkSync(thumbnail);
@@ -416,18 +416,19 @@ router.get(
 
       //Fetch external encoding data.
       let job;
-      if (video.job_id) {
+      if (video.job_id && video.status !== 'published' && video.status !== 'publish_manual' && video.status !== 'encoding_failed' ) {
         try {
           const { data: info } = await Axios.get(
             `${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`
           );
-          //console.log(info);
           video.encoding_status = info;
           job = info.job;
-          if (job.progress.pct !== undefined && job.progress.pct !== null) {
-            video.encodingProgress = job.progress.pct;
-          } else if (job.progress.download_pct !== undefined && job.progress.download_pct !== null) {
-            video.encodingProgress = job.progress.download_pct;
+          if (job !== null && job !== undefined && 'progress' in job && job.progress !== null && job.progress !== undefined) {
+            if ('pct' in job.progress && job.progress.pct !== undefined && job.progress.pct !== null) {
+              video.encodingProgress = job.progress.pct;
+            } else if ('download_pct' in job.progress && job.progress.download_pct !== undefined && job.progress.download_pct !== null) {
+              video.encodingProgress = job.progress.download_pct;
+            }
           }
         } catch (ex) {
           console.log(ex);

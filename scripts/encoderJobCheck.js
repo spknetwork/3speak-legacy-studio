@@ -4,13 +4,13 @@ import Axios from 'axios'
 //import mobileNotifier from '../mobile-firebase-notifier.js';
 
 void (async () => {
-    setTimeout(() => {
-        process.exit(0)
-    }, 300 * 1000)
+    // setTimeout(() => {
+    //     process.exit(0)
+    // }, 300 * 1000)
     
     const videos = await mongoDB.Video.find({
         status: 'encoding_ipfs'
-    })
+    }).sort('-created').limit(250);
     // console.log(videos)
     for(let video of videos) {
         const {data:jobInfo} = await Axios.get(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`)
@@ -61,7 +61,7 @@ void (async () => {
                         }
                     }
                 }
-                console.log(video.beneficiaries)
+                // console.log(video.beneficiaries)
                 video.beneficiaries = JSON.stringify(beneficiaries);
             } catch (ex) {
                 console.log(ex)
@@ -73,7 +73,7 @@ void (async () => {
             video.created = new Date(job.created_at)
             video.video_v2 = `ipfs://${job.result.cid}/manifest.m3u8`;
             video.needsHiveUpdate = true
-            console.log(video)
+            // console.log(video)
             await video.save()
         }
     }

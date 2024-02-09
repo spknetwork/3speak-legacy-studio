@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "cross-env MONGO_HOST=172.31.43.106:27018 node ./bin/www",
+    "start": "cross-env node ./bin/www",
     "dev": "cross-env ENV=dev node --trace-warnings ./bin/www",
     "transpile": "babel ./server --out-dir dist-server"
   },
@@ -43,7 +43,7 @@
     "md5": "^2.3.0",
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.34",
-    "mongoose": "^5.13.14",
+    "mongoose": "^5.11.20",
     "morgan": "^1.9.1",
     "mssql": "^5.1.5",
     "multer": "^1.4.4",

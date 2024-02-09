@@ -1,7 +1,9 @@
+import 'dotenv/config'
 import mongoose from 'mongoose';
 import fetch from 'node-fetch';
 let host = APP_MONGO_HOST;
-mongoose.connect('mongodb://' + host, {useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true});
+console.log("CONNECTING TO", host)
+mongoose.connect(host, {useNewUrlParser: true, useUnifiedTopology: true });
 
 const ContentCategorySchema = new mongoose.Schema({
     code: {type: String, required: true},

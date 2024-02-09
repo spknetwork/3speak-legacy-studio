@@ -5,7 +5,7 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import session from 'express-session';
-import MongoStoreFactory from 'connect-mongo';
+import MongoStoreFactory from 'connect-mongodb-session';
 import twig from 'twig';
 import multer from 'multer';
 import md5 from 'md5';
@@ -53,7 +53,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: {httpOnly: false, maxAge: 3600000 * 360},
     store: new MongoStore({
-        url: 'mongodb://' + host
+        url: APP_MONGO_SRV_HOST
     })
 }));
 

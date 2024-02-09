@@ -1266,25 +1266,26 @@ router.post("/api/upload/prepare", middleware.requireLogin, middleware.requireId
 });
 
 router.get("/login", (req, res) => {
-    const { access_token = null } = req.query;
-    if (!req.session.user && access_token === null) {
-
-        return res.redirect(AUTH_API_URL + '?redirect_url=' + AUTH_API_REDIRECT_URL + '&client_id=' + consts.AUTH_API_CLIENT_ID)
-
-    } else {
-
-        if (access_token !== null) {
-            try {
-                const userProfile = jwt.verify(access_token, consts.AUTH_JWT_SECRET)
-                console.log(userProfile)
-                req.session.user = userProfile
-                return res.redirect('/dashboard')
-            } catch (e) {
-                return res.redirect('/dashboard')
+    try {
+        const { access_token = null } = req.query;
+        if (!req.session.user && access_token === null) {
+            return res.redirect(AUTH_API_URL + '?redirect_url=' + AUTH_API_REDIRECT_URL + '&client_id=' + consts.AUTH_API_CLIENT_ID)
+        } else {
+            if (access_token !== null) {
+                try {
+                    const userProfile = jwt.verify(access_token, consts.AUTH_JWT_SECRET)
+                    console.log(userProfile)
+                    req.session.user = userProfile
+                    return res.redirect('/dashboard')
+                } catch (e) {
+                    return res.redirect('/dashboard')
+                }
             }
+            res.redirect('/dashboard')
         }
-
-        res.redirect('/dashboard')
+    } catch (ex) {
+        console.log(ex)
+        res.json('broken')
     }
 });
 

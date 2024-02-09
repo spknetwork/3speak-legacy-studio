@@ -37,7 +37,6 @@ global.SUPPORT_PORTAL = `helpdesk.${APP_PAGE_DOMAIN}`
 global.APP_REDIS_HOST = 'redis://x:threespeak@127.0.0.1:6379';
 global.APP_MEMCACHED_HOST = '127.0.0.1';
 global.APP_MONGO_HOST = process.env.MONGO_HOST || 'localhost:27018';
-global.APP_MONGO_SRV_HOST = process.env.MONGO_SRV_HOST || 'localhost:27018';
 global.APP_REDDITMQ_HOST = 'amqp://manager:manager@localhost'
 
 global.AUTH_API_REDIRECT_URL = process.env.ENV === 'dev' ? 'http://localhost:13050/login' : `https://studio.3speak.tv/login`;

@@ -198,7 +198,7 @@ router.post(
           //replicationFactorMax: 3,
         }
       );
-      fs.unlinkSync(thumbnail);
+      // fs.unlinkSync(thumbnail);
       // Save video details
       video.thumbnail = `ipfs://${thumbnailCid}`;
       if (app === null) {

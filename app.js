@@ -53,7 +53,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: {httpOnly: false, maxAge: 3600000 * 360},
     store: new MongoStore({
-        url: 'mongodb://' + host
+        url: host
     })
 }));
 

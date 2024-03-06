@@ -1569,6 +1569,15 @@ router.post('/api/completeIdentityChallenge', middleware.requireLogin, async (re
                 signatureValid = true;
               }
         }
+        for (let auth of account.active.key_auths) {
+            const sigValidity = dhive.PublicKey.fromString(auth[0]).verify(
+                Buffer.from(dhive.cryptoUtils.sha256(message)),
+                dhive.Signature.fromBuffer(Buffer.from(signature, 'hex')),
+              )
+              if (sigValidity) {
+                signatureValid = true;
+              }
+        }
 
         if (signatureValid) {
             const challenge = await mongoDB.HiveAccountChallenge.findOne({

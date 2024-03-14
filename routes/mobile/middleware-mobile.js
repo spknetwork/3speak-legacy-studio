@@ -14,6 +14,10 @@ var client = new dhive.Client([
 async function requireMobileLogin(req, res, next) {
   let user = req.session.user;
   if (user === null || user === undefined) {
+    if (!("authorization" in req.headers)) {
+      const banReason = "Invalid session. Please logout & login again";
+      return res.status(500).send({ error: banReason });
+    }
     const token = req.headers["authorization"].replace("Bearer ", "");
     try {
       user = jwt.verify(token, config.AUTH_JWT_SECRET);

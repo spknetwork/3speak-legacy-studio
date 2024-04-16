@@ -161,6 +161,10 @@ router.post("/api/upload_image", async (req, res) => {
   let thumbnail = path.resolve(
     `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
   );
+  const fileSize = (await fs.promises.stat(thumbnail)).size;
+  if (fileSize / (1024 * 1024) > 5) {
+    return res.status(500).send({ error: "Thumbnail bigger than 5 mb" });
+  }
   const { cid: thumbnailCid } = await cluster.addData(
     fs.createReadStream(thumbnail),
     {

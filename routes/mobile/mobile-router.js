@@ -144,6 +144,37 @@ router.get("/login", async (req, res) => {
   }
 });
 
+router.post("/api/upload_image", async (req, res) => {
+  if (
+    req.body.hiveusername === undefined ||
+    req.body.hiveusername === null ||
+    req.body.hiveusername.length < 3 ||
+    req.body.permlink === undefined ||
+    req.body.permlink === null ||
+    req.body.permlink.length < 3 ||
+    req.body.thumbnail === undefined ||
+    req.body.thumbnail === null ||
+    req.body.thumbnail.length < 3
+  ) {
+    return res.status(500).send({ error: "Invalid request" });
+  }
+  let thumbnail = path.resolve(
+    `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
+  );
+  const { cid: thumbnailCid } = await cluster.addData(
+    fs.createReadStream(thumbnail),
+    {
+      metadata: {
+        key: `${req.body.hiveusername}/${req.body.permlink}/thumbnail`,
+      },
+      //replicationFactorMin: 2,
+      //replicationFactorMax: 3,
+    }
+  );
+  fs.unlinkSync(thumbnail);
+  res.send({ ipfs: `ipfs://${thumbnailCid}` });
+});
+
 router.post(
   "/api/upload_info",
   middleware.requireMobileLogin,

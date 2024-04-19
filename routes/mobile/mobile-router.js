@@ -146,7 +146,7 @@ router.get("/login", async (req, res) => {
 });
 
 router.get("/api/distrion_business_data", async (req, res) => {
-  res.send(businessData);
+  return res.send(businessData);
 });
 
 router.post("/api/upload_image", async (req, res) => {

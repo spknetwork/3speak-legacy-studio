@@ -12,6 +12,7 @@ import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
 import moment from 'moment-timezone';
+import businessData from './distrion-business-data.js';
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -142,6 +143,10 @@ router.get("/login", async (req, res) => {
     console.log(e);
     return res.status(500).send({ error: `Error is ${e.toString()}` });
   }
+});
+
+router.get("/api/distrion_business_data", async (req, res) => {
+  res.send(businessData);
 });
 
 router.post("/api/upload_image", async (req, res) => {

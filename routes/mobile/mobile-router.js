@@ -145,10 +145,6 @@ router.get("/login", async (req, res) => {
   }
 });
 
-router.get("/api/distrion_business_data", async (req, res) => {
-  return res.send(businessData);
-});
-
 router.post("/api/upload_image", async (req, res) => {
   if (
     req.body.hiveusername === undefined ||
@@ -424,13 +420,14 @@ router.get('/api/video/:id/delete', middleware.requireMobileLogin, async (req, r
 
 router.get(
   "/api/my-videos",
-  middleware.requireMobileLogin,
+  // middleware.requireMobileLogin,
   async (req, res) => {
-    let userObject = getUserFromRequest(req);
-    if (userObject === undefined || userObject === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
-    }
-    const user = userObject.user_id;
+    // let userObject = getUserFromRequest(req);
+    // if (userObject === undefined || userObject === null) {
+    //   return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    // }
+    // const user = userObject.user_id;
+    const user = "starkerz";
     const queryLimit = 50;
     let skip = req.query.skip;
     if (skip === null || skip === undefined) {

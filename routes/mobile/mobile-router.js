@@ -209,6 +209,9 @@ router.post(
       if (req.body.height !== undefined) {
         video.height = parseFloat(req.body.height);
       }
+      if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
+        videoEntry.beneficiaries = req.body.beneficiaries;
+      }
       video.owner = req.body.owner;
       video.created = Date.now();
       video.upload_type = "ipfs";

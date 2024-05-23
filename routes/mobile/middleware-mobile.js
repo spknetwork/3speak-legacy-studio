@@ -117,7 +117,7 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
       fromMobile !== null &&
       fromMobile === true
     ) {
-      if (sagar.length === 0) return false;
+      if (sagar.length === 0 || spkBeneficiary.length === 0) return false;
       const sagarBenWeight = sagar[0].weight;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       if (

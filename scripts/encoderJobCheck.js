@@ -66,18 +66,13 @@ void (async () => {
             } catch (ex) {
                 console.log(ex)
             }
-            if (video.duration < 5) {
-                console.log(`${video.owner}/${video.permlink} - video length less than 5 seconds not allowed to be published`);
-                video.status = "deleted";
-            } else {
-                video.status = video.publish_type === 'publish' ? 'published' : 'scheduled'
-                if (('fromMobile' in video && video.fromMobile === true) || ('app' in video && video.app !== undefined && video.app !== null)) {
-                    video.status = "publish_manual";
-                }
-                video.created = new Date(job.created_at)
-                video.video_v2 = `ipfs://${job.result.cid}/manifest.m3u8`;
-                video.needsHiveUpdate = true
+            video.status = video.publish_type === 'publish' ? 'published' : 'scheduled'
+            if (('fromMobile' in video && video.fromMobile === true) || ('app' in video && video.app !== undefined && video.app !== null)) {
+                video.status = "publish_manual";
             }
+            video.created = new Date(job.created_at)
+            video.video_v2 = `ipfs://${job.result.cid}/manifest.m3u8`;
+            video.needsHiveUpdate = true
             // console.log(video)
             await video.save()
         }

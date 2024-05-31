@@ -127,14 +127,14 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
         spkBeneficiaryWeight === null
       )
         return false;
-      if (sagarBenWeight < 100 || spkBeneficiaryWeight < 1000) return false;
+      if (sagarBenWeight < 100 || spkBeneficiaryWeight < 900) return false;
       return true;
     } else {
       if (spkBeneficiary.length === 0) return false;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       if (spkBeneficiaryWeight === undefined || spkBeneficiaryWeight === null)
         return false;
-      if (spkBeneficiaryWeight < 1000) return false;
+      if (spkBeneficiaryWeight < 900) return false;
       return true;
     }
   } catch (e) {

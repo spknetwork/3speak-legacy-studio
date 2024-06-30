@@ -16,7 +16,8 @@ import businessData from './distrion-business-data.js';
 
 hive.api.setOptions({
   useAppbaseApi: true,
-  url: `${HIVE_DEFAULT_NODE_PREFIX}://${HIVE_DEFAULT_NODE}`,
+  // url: `${HIVE_DEFAULT_NODE_PREFIX}://${HIVE_DEFAULT_NODE}`,
+  url: `https://techcoderx.com`
 });
 
 let cluster;

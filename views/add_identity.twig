@@ -253,7 +253,7 @@
                 console.log(window.hive_keychain)
                 const [account] = await hive.api.getAccountsAsync([$('#username').val()]);
                 if (account === undefined) {
-                    $('#account_error').text("This HIVE account does not exist. Please chose an existing HIVE account.").removeClass("d-none")
+                    $('#account_error').text("This HIVE account does not exist. Please choose an existing HIVE account.").removeClass("d-none")
                 } else {
                     $('#step_1').addClass("d-none");
 
@@ -345,7 +345,7 @@
             $('#checkAccount').click(async () => {
                 const [account] = await hive.api.getAccountsAsync([$('#username').val()]);
                 if (account === undefined) {
-                    $('#account_error').text("This HIVE account does not exist. Please chose an existing HIVE account.").removeClass("d-none")
+                    $('#account_error').text("This HIVE account does not exist. Please choose an existing HIVE account.").removeClass("d-none")
                 } else {
                     console.log(account)
                     $('#step_1').addClass("d-none");

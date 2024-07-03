@@ -19,6 +19,25 @@ hive.api.setOptions({
   url: `https://techcoderx.com`
 });
 
+import dhive from "@hiveio/dhive";
+var dhiveClient = new dhive.Client([
+  "https://api.hive.blog",
+  "https://api.deathwing.me",
+  "https://hive-api.arcange.eu",
+  "https://hived.emre.sh",
+  "https://api.openhive.network",
+  "https://rpc.ausbit.dev",
+  "https://rpc.mahdiyari.info",
+  "https://hive-api.3speak.tv",
+  "https://anyx.io",
+  "https://techcoderx.com",
+  "https://api.hive.blue",
+  "https://api.c0ff33a.uk",
+  "https://api.pharesim.me",
+  "https://hived.privex.io",
+  "https://hive.roelandp.nl",
+]);
+
 let cluster;
 if (process.env.ENV === "dev") {
   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
@@ -80,10 +99,10 @@ router.get("/login", async (req, res) => {
       let publicKey = null;
       if (client === null) {
         if (hivesigner === "true") {
-          const [account] = await hive.api.getAccountsAsync(['hivesigner']);
+          const [account] = await dhiveClient.database.getAccounts(['hivesigner']);
           publicKey = account.posting.key_auths[0][0];
         } else {
-          const [account] = await hive.api.getAccountsAsync([username]);
+          const [account] = await dhiveClient.database.getAccounts([username]);
           publicKey = account.posting.key_auths[0][0];
         }
       } else if (client === "mobile") {

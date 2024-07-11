@@ -15,8 +15,8 @@ import moment from 'moment-timezone';
 
 hive.api.setOptions({
   useAppbaseApi: true,
-  // url: `${HIVE_DEFAULT_NODE_PREFIX}://${HIVE_DEFAULT_NODE}`,
-  url: `https://techcoderx.com`
+  url: `${HIVE_DEFAULT_NODE_PREFIX}://${HIVE_DEFAULT_NODE}`,
+  // url: `https://techcoderx.com`
 });
 
 import dhive from "@hiveio/dhive";

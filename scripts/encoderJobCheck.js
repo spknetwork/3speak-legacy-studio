@@ -36,28 +36,22 @@ void (async () => {
                         if(!beneficiaries.find(e => {
                             return e.src === "ENCODER_PAY"
                         })) {
-                            beneficiaries.push({
-                                account: node_info.cryptoAccounts.hive,
-                                weight: 100,
-                                src: 'ENCODER_PAY'
-                            })
+                            // Change 1: Sagar isn't taking video encoding beneficiaries any more.
+                            if (node_info.cryptoAccounts.hive !== 'sagarkothari88') {
+                                beneficiaries.push({
+                                    account: node_info.cryptoAccounts.hive,
+                                    weight: 100,
+                                    src: 'ENCODER_PAY'
+                                })
+                            }
                         }
                         if (video.fromMobile) {
+                            // Change 2: Sagar is taking 1% beneficary only when it's uploaded from mobile-app
                             beneficiaries.push({
                                 account: 'sagarkothari88',
                                 weight: 100,
                                 src: 'MOBILE_APP_PAY'
                             })
-                            // avoid duplication of same beneficiaries || removing duplicate beneficiaries
-                            // if video is encoded by sagar's node and uploaded from mobile
-                            if (beneficiaries.filter((ben) => {
-                                return ben.account === 'sagarkothari88'
-                            }).length > 1) {
-                                beneficiaries = beneficiaries.filter((ben) => {
-                                    return ben.account !== 'sagarkothari88'
-                                });
-                                beneficiaries = [...beneficiaries, {account: 'sagarkothari88', weight: 200, src: 'MOBILE_APP_PAY_AND_ENCODER_PAY'}];
-                            }
                         }
                     }
                 }

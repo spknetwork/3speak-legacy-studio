@@ -36,22 +36,30 @@ void (async () => {
                         if(!beneficiaries.find(e => {
                             return e.src === "ENCODER_PAY"
                         })) {
-                            // Change 1: Sagar isn't taking video encoding beneficiaries any more.
-                            if (node_info.cryptoAccounts.hive !== 'sagarkothari88') {
+                            if (node_info.cryptoAccounts.hive == 'sagarkothari88' && video.fromMobile) {
+                                beneficiaries.push({
+                                    account: node_info.cryptoAccounts.hive,
+                                    weight: 100,
+                                    src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+                                })
+                            } else if (video.fromMobile) {
+                                beneficiaries.push({
+                                    account: node_info.cryptoAccounts.hive,
+                                    weight: 100,
+                                    src: 'ENCODER_PAY'
+                                })
+                                beneficiaries.push({
+                                    account: 'sagarkothari88',
+                                    weight: 100,
+                                    src: 'MOBILE_APP_PAY'
+                                })
+                            } else {
                                 beneficiaries.push({
                                     account: node_info.cryptoAccounts.hive,
                                     weight: 100,
                                     src: 'ENCODER_PAY'
                                 })
                             }
-                        }
-                        if (video.fromMobile) {
-                            // Change 2: Sagar is taking 1% beneficary only when it's uploaded from mobile-app
-                            beneficiaries.push({
-                                account: 'sagarkothari88',
-                                weight: 100,
-                                src: 'MOBILE_APP_PAY'
-                            })
                         }
                     }
                 }

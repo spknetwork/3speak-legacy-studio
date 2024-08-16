@@ -180,6 +180,7 @@ const VideoSchema = new mongoose.Schema({
     width: {type: Number, default: null, required: false},     
     height: {type: Number, default: null, required: false},
     isAudio: {type: Boolean, default: false},
+    jsonMetaDataAppName: {type: String, default: null, required: false},
 });
 const SubscriptionSchema = new mongoose.Schema({
     userId: {type: String, required: true},

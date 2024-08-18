@@ -274,8 +274,8 @@ router.post(
             `${config.TUS_UPLOAD_PATH}/${video.local_filename}`
           );
         }
-        var child = fork("./scripts/encoderUpload.js", [filepath, videoEntry._id], { detached: false });
-        videoEntry.status = "encoding_preparing";
+        var child = fork("./scripts/encoderUpload.js", [filepath, video._id], { detached: false });
+        video.status = "encoding_preparing";
         await video.save();
         res.send(video);
       } else {

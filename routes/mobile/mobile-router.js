@@ -261,8 +261,7 @@ router.post(
       } else {
         video.app = app;
       }
-      // put it in queue
-      console.log(video);
+
       if (video.local_filename) {
         let filepath;
         if (
@@ -275,6 +274,8 @@ router.post(
             `${config.TUS_UPLOAD_PATH}/${video.local_filename}`
           );
         }
+        var child = fork("./scripts/encoderUpload.js", [filepath, video._id], { detached: false });
+        video.status = "encoding_preparing";
         await video.save();
         res.send(video);
       } else {
@@ -352,28 +353,8 @@ router.post(
       fs.unlinkSync(thumbnail);
       videoEntry.thumbnail = `ipfs://${thumbnailCid}`;
     }
-
-    if (videoEntry.local_filename) {
-      let filepath;
-      if (videoEntry.local_filename.includes("/") || videoEntry.local_filename.includes("\\")) {
-        return res.status(500).send({ error: "File name must not include any slashes." });
-      } else {
-        filepath = path.resolve(
-          `${config.TUS_UPLOAD_PATH}/${videoEntry.local_filename}`
-        );
-      }
-      // Start video encoding only after user is done saving all the details - title, content, beneficiaries, tags etc.
-      // this will solve all the beneficiary related issues which leofinance & other dapps are reporting.
-      var child = fork("./scripts/encoderUpload.js", [filepath, videoEntry._id], { detached: false });
-      videoEntry.status = "encoding_preparing";
-      await videoEntry.save();
-      res.send(videoEntry);
-    } else {
-      console.error("Error video does not have local_filename");
-      return res.send({
-        status: "FAIL",
-      });
-    }
+    await videoEntry.save();
+    res.send(videoEntry);
   }
 );
 

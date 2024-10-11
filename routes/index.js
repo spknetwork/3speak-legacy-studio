@@ -1140,7 +1140,7 @@ router.post('/api/upload/tus-callback', async (req, res) => {
             _id: video_id,
             status: 'uploaded'
         })
-        console.log(video.save)
+        // console.log(video.save)
         if(!video) {
             return res.status(400).send({
                 error: "Video is invalid"

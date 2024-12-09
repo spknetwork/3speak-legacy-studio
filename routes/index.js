@@ -717,6 +717,7 @@ router.post("/api/video/edit", middleware.requireLogin, middleware.checkPaymentR
 
         let thumbnail = req.file;
         //let key = thumbnail.filename + "." + thumbnail.mimetype.replace("image/", "");
+        console.log(`IPFS Cluster Pinning started`);
         const { cid: thumbnailCid } = await cluster.addData(fs.createReadStream(thumbnail.path), {
             metadata: {
                 key: `${video.owner}/${video.permlink}/thumbnail`
@@ -724,6 +725,7 @@ router.post("/api/video/edit", middleware.requireLogin, middleware.checkPaymentR
             replicationFactorMin: 2,
             replicationFactorMax: 3
         })
+        console.log(`IPFS Cluster Pinning ended`);
         fs.unlinkSync(thumbnail.path);
 
         video.title = title;

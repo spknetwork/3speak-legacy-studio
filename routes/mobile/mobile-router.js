@@ -185,6 +185,7 @@ router.post("/api/upload_image", async (req, res) => {
   if (fileSize / (1024 * 1024) > 5) {
     return res.status(500).send({ error: "Thumbnail bigger than 5 mb" });
   }
+  console.log(`IPFS Cluster Pinning started`);
   const { cid: thumbnailCid } = await cluster.addData(
     fs.createReadStream(thumbnail),
     {
@@ -195,6 +196,7 @@ router.post("/api/upload_image", async (req, res) => {
       replicationFactorMax: 3,
     }
   );
+  console.log(`IPFS Cluster Pinning ended`);
   fs.unlinkSync(thumbnail);
   res.send({ ipfs: `ipfs://${thumbnailCid}` });
 });
@@ -243,6 +245,7 @@ router.post(
       let thumbnail = path.resolve(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
       );
+      console.log(`IPFS Cluster Pinning started`);
       const { cid: thumbnailCid } = await cluster.addData(
         fs.createReadStream(thumbnail),
         {
@@ -253,6 +256,7 @@ router.post(
           replicationFactorMax: 3,
         }
       );
+      console.log(`IPFS Cluster Pinning ended`);
       // fs.unlinkSync(thumbnail);
       // Save video details
       video.thumbnail = `ipfs://${thumbnailCid}`;
@@ -340,6 +344,7 @@ router.post(
       let thumbnail = path.resolve(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
       );
+      console.log(`IPFS Cluster Pinning started`);
       const { cid: thumbnailCid } = await cluster.addData(
         fs.createReadStream(thumbnail),
         {
@@ -350,6 +355,7 @@ router.post(
           replicationFactorMax: 3,
         }
       );
+      console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(thumbnail);
       videoEntry.thumbnail = `ipfs://${thumbnailCid}`;
     }
@@ -381,6 +387,7 @@ router.post(
       let thumbnail = path.resolve(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
       );
+      console.log(`IPFS Cluster Pinning started`);
       const { cid: thumbnailCid } = await cluster.addData(
         fs.createReadStream(thumbnail),
         {
@@ -391,6 +398,7 @@ router.post(
           replicationFactorMax: 3,
         }
       );
+      console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(thumbnail);
       videoEntry.thumbnail = `ipfs://${thumbnailCid}`;
       await videoEntry.save();
@@ -688,6 +696,7 @@ router.post(
       }
       // thumbnail upload
       const thumbnail = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`);
+      console.log(`IPFS Cluster Pinning started`);
       const { cid: thumbnailCid } = await cluster.addData(
         fs.createReadStream(thumbnail),
         {
@@ -696,6 +705,7 @@ router.post(
           },
         }
       );
+      console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(thumbnail);
       video.thumbnail = `ipfs://${thumbnailCid}`;
       if (app === null) {
@@ -706,6 +716,7 @@ router.post(
 
       // podcast episode upload
       const episode = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.episode}`);
+      console.log(`IPFS Cluster Pinning started`);
       const { cid: episodeCid } = await cluster.addData(
         fs.createReadStream(episode),
         {
@@ -714,6 +725,7 @@ router.post(
           },
         }
       );
+      console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(episode);
       video.video_v2 = `ipfs://${episodeCid}?filename=${req.body.oFilename}`;
       video.filename = video.video_v2;

@@ -191,8 +191,8 @@ router.post("/api/upload_image", async (req, res) => {
       metadata: {
         key: `${req.body.hiveusername}/${req.body.permlink}/thumbnail`,
       },
-      //replicationFactorMin: 2,
-      //replicationFactorMax: 3,
+      replicationFactorMin: 2,
+      replicationFactorMax: 3,
     }
   );
   fs.unlinkSync(thumbnail);
@@ -249,8 +249,8 @@ router.post(
           metadata: {
             key: `${video.owner}/${video.permlink}/thumbnail`,
           },
-          //replicationFactorMin: 2,
-          //replicationFactorMax: 3,
+          replicationFactorMin: 2,
+          replicationFactorMax: 3,
         }
       );
       // fs.unlinkSync(thumbnail);
@@ -346,8 +346,8 @@ router.post(
           metadata: {
             key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
           },
-          // replicationFactorMin: 2,
-          // replicationFactorMax: 3,
+          replicationFactorMin: 2,
+          replicationFactorMax: 3,
         }
       );
       fs.unlinkSync(thumbnail);
@@ -387,8 +387,8 @@ router.post(
           metadata: {
             key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
           },
-          // replicationFactorMin: 2,
-          // replicationFactorMax: 3,
+          replicationFactorMin: 2,
+          replicationFactorMax: 3,
         }
       );
       fs.unlinkSync(thumbnail);

@@ -12,6 +12,8 @@ import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
 import moment from 'moment-timezone';
+import {execa} from 'execa';
+import { CID } from 'multiformats/cid'
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -186,19 +188,21 @@ router.post("/api/upload_image", async (req, res) => {
     return res.status(500).send({ error: "Thumbnail bigger than 5 mb" });
   }
   console.log(`IPFS Cluster Pinning started`);
-  const { cid: thumbnailCid } = await cluster.addData(
-    fs.createReadStream(thumbnail),
-    {
-      metadata: {
-        key: `${req.body.hiveusername}/${req.body.permlink}/thumbnail`,
-      },
-      // replicationFactorMin: 2,
-      // replicationFactorMax: 3,
-    }
-  );
-  console.log(`IPFS Cluster Pinning ended`);
+  const {stdout} = await execa('ipfs-cluster-ctl', ['add', thumbnail, '-Q', '--raw-leaves'])
+  const cid = CID.parse(stdout)
+  // const { cid: thumbnailCid } = await cluster.addData(
+  //   fs.createReadStream(thumbnail),
+  //   {
+  //     metadata: {
+  //       key: `${req.body.hiveusername}/${req.body.permlink}/thumbnail`,
+  //     },
+  //     // replicationFactorMin: 2,
+  //     // replicationFactorMax: 3,
+  //   }
+  // );
+  // console.log(`IPFS Cluster Pinning ended`);
   fs.unlinkSync(thumbnail);
-  res.send({ ipfs: `ipfs://${thumbnailCid}` });
+  res.send({ ipfs: `ipfs://${cid}` });
 });
 
 router.post(
@@ -246,16 +250,18 @@ router.post(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
       );
       console.log(`IPFS Cluster Pinning started`);
-      const { cid: thumbnailCid } = await cluster.addData(
-        fs.createReadStream(thumbnail),
-        {
-          metadata: {
-            key: `${video.owner}/${video.permlink}/thumbnail`,
-          },
-          // replicationFactorMin: 2,
-          // replicationFactorMax: 3,
-        }
-      );
+      const {stdout} = await execa('ipfs-cluster-ctl', ['add', thumbnail, '-Q', '--raw-leaves'])
+      const thumbnailCid = CID.parse(stdout)
+      // const { cid: thumbnailCid } = await cluster.addData(
+      //   fs.createReadStream(thumbnail),
+      //   {
+      //     metadata: {
+      //       key: `${video.owner}/${video.permlink}/thumbnail`,
+      //     },
+      //     // replicationFactorMin: 2,
+      //     // replicationFactorMax: 3,
+      //   }
+      // );
       console.log(`IPFS Cluster Pinning ended`);
       // fs.unlinkSync(thumbnail);
       // Save video details
@@ -345,16 +351,18 @@ router.post(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
       );
       console.log(`IPFS Cluster Pinning started`);
-      const { cid: thumbnailCid } = await cluster.addData(
-        fs.createReadStream(thumbnail),
-        {
-          metadata: {
-            key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
-          },
-          // replicationFactorMin: 2,
-          // replicationFactorMax: 3,
-        }
-      );
+      const {stdout} = await execa('ipfs-cluster-ctl', ['add', thumbnail, '-Q', '--raw-leaves'])
+      const thumbnailCid = CID.parse(stdout)
+      // const { cid: thumbnailCid } = await cluster.addData(
+      //   fs.createReadStream(thumbnail),
+      //   {
+      //     metadata: {
+      //       key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
+      //     },
+      //     // replicationFactorMin: 2,
+      //     // replicationFactorMax: 3,
+      //   }
+      // );
       console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(thumbnail);
       videoEntry.thumbnail = `ipfs://${thumbnailCid}`;
@@ -388,16 +396,18 @@ router.post(
         `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
       );
       console.log(`IPFS Cluster Pinning started`);
-      const { cid: thumbnailCid } = await cluster.addData(
-        fs.createReadStream(thumbnail),
-        {
-          metadata: {
-            key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
-          },
-          // replicationFactorMin: 2,
-          // replicationFactorMax: 3,
-        }
-      );
+      const {stdout} = await execa('ipfs-cluster-ctl', ['add', thumbnail, '-Q', '--raw-leaves'])
+      const thumbnailCid = CID.parse(stdout)
+      // const { cid: thumbnailCid } = await cluster.addData(
+      //   fs.createReadStream(thumbnail),
+      //   {
+      //     metadata: {
+      //       key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
+      //     },
+      //     // replicationFactorMin: 2,
+      //     // replicationFactorMax: 3,
+      //   }
+      // );
       console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(thumbnail);
       videoEntry.thumbnail = `ipfs://${thumbnailCid}`;
@@ -697,14 +707,16 @@ router.post(
       // thumbnail upload
       const thumbnail = path.resolve(`${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`);
       console.log(`IPFS Cluster Pinning started`);
-      const { cid: thumbnailCid } = await cluster.addData(
-        fs.createReadStream(thumbnail),
-        {
-          metadata: {
-            key: `${video.owner}/${video.permlink}/thumbnail`,
-          },
-        }
-      );
+      const {stdout} = await execa('ipfs-cluster-ctl', ['add', thumbnail, '-Q', '--raw-leaves'])
+      const thumbnailCid = CID.parse(stdout)
+      // const { cid: thumbnailCid } = await cluster.addData(
+      //   fs.createReadStream(thumbnail),
+      //   {
+      //     metadata: {
+      //       key: `${video.owner}/${video.permlink}/thumbnail`,
+      //     },
+      //   }
+      // );
       console.log(`IPFS Cluster Pinning ended`);
       fs.unlinkSync(thumbnail);
       video.thumbnail = `ipfs://${thumbnailCid}`;

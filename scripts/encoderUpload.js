@@ -1,15 +1,13 @@
 import config from "../config/index.js";
 import Ed25519ProviderImport from "key-did-provider-ed25519";
-import Crypto from 'crypto'
+
 import KeyResolver from 'key-did-resolver'
 import DIDImport from 'dids'
 import Axios from 'axios'
 import { CID } from 'multiformats/cid'
 import { File, Blob } from '@web-std/file'
 
-import ipfsCluster from 'ipfs-cluster-api';
 import FormData from 'form-data'
-import { Cluster } from '@nftstorage/ipfs-cluster'
 import fetch from '@web-std/fetch'
 import './../page_conf.js';
 import mongoDB from '../mongoDB.js';
@@ -25,20 +23,6 @@ Object.assign(global, { fetch, File, Blob, FormData })
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-let cluster;
-if(process.env.ENV === "dev") {
-    cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
-        headers: {
-           
-        }
-    })
-
-} else {
-    cluster = new Cluster('http://localhost:9094', {
-    })
-}
-
 
 console.log(DID)
 
@@ -68,11 +52,6 @@ void (async () => {
     if (video.upload_type === "ipfs") {
         let success = false;
         for(let x = 0; x < 10; x++) {
-            // const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
-            //     //replicationFactorMin: 1,
-            //     //replicationFactorMax: 2
-            // })
-
             const {stdout} = await execa('ipfs-cluster-ctl', ['add', fsPath, '-Q', '--raw-leaves'])
             const cid = CID.parse(stdout)
             try {

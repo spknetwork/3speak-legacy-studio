@@ -192,8 +192,8 @@ router.post("/api/upload_image", async (req, res) => {
       metadata: {
         key: `${req.body.hiveusername}/${req.body.permlink}/thumbnail`,
       },
-      replicationFactorMin: 2,
-      replicationFactorMax: 3,
+      // replicationFactorMin: 2,
+      // replicationFactorMax: 3,
     }
   );
   console.log(`IPFS Cluster Pinning ended`);
@@ -252,8 +252,8 @@ router.post(
           metadata: {
             key: `${video.owner}/${video.permlink}/thumbnail`,
           },
-          replicationFactorMin: 2,
-          replicationFactorMax: 3,
+          // replicationFactorMin: 2,
+          // replicationFactorMax: 3,
         }
       );
       console.log(`IPFS Cluster Pinning ended`);
@@ -351,8 +351,8 @@ router.post(
           metadata: {
             key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
           },
-          replicationFactorMin: 2,
-          replicationFactorMax: 3,
+          // replicationFactorMin: 2,
+          // replicationFactorMax: 3,
         }
       );
       console.log(`IPFS Cluster Pinning ended`);
@@ -394,8 +394,8 @@ router.post(
           metadata: {
             key: `${videoEntry.owner}/${videoEntry.permlink}/thumbnail`,
           },
-          replicationFactorMin: 2,
-          replicationFactorMax: 3,
+          // replicationFactorMin: 2,
+          // replicationFactorMax: 3,
         }
       );
       console.log(`IPFS Cluster Pinning ended`);

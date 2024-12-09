@@ -722,8 +722,8 @@ router.post("/api/video/edit", middleware.requireLogin, middleware.checkPaymentR
             metadata: {
                 key: `${video.owner}/${video.permlink}/thumbnail`
             },
-            replicationFactorMin: 2,
-            replicationFactorMax: 3
+            // replicationFactorMin: 2,
+            // replicationFactorMax: 3
         })
         console.log(`IPFS Cluster Pinning ended`);
         fs.unlinkSync(thumbnail.path);

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import fetch from 'node-fetch';
 let host = APP_MONGO_HOST;
 console.log("CONNECTING TO", host)
-mongoose.connect(host, {useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(host, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 
 const ContentCategorySchema = new mongoose.Schema({
     code: {type: String, required: true},

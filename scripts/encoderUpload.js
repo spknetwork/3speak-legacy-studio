@@ -68,13 +68,13 @@ void (async () => {
     if (video.upload_type === "ipfs") {
         let success = false;
         for(let x = 0; x < 10; x++) {
-            // const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
-            //     //replicationFactorMin: 1,
-            //     //replicationFactorMax: 2
-            // })
+            const { cid } = await cluster.addData(fs.createReadStream(fsPath), {
+                //replicationFactorMin: 1,
+                //replicationFactorMax: 2
+            })
 
-            const {stdout} = await execa('ipfs-cluster-ctl', ['add', fsPath, '-Q', '--raw-leaves'])
-            const cid = CID.parse(stdout)
+            //const {stdout} = await execa('ipfs-cluster-ctl', ['add', fsPath, '-Q', '--raw-leaves'])
+            // const cid = CID.parse(stdout)
             try {
                 const { data } = await Axios.post(`${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/pushJob`, {
                     jws: await did.createJWS({

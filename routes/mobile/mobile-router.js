@@ -19,6 +19,9 @@ hive.api.setOptions({
   // url: `https://techcoderx.com`
 });
 
+import AdmZip from 'adm-zip';
+
+
 import dhive from "@hiveio/dhive";
 var dhiveClient = new dhive.Client([
   "https://api.hive.blog",
@@ -789,4 +792,150 @@ router.post(
     }
   }
 );
+
+// Functions related to support upload of encoded videos
+
+const uploadFolderToCluster = async (folderPath) => {
+  const files = await addFilesFromFolder(folderPath);
+
+  const fileCIDs = [];
+
+  // Upload each file to IPFS Cluster
+  for (const file of files) {
+    const filePath = file.path;
+    const fileStream = fs.createReadStream(file.fullPath); // Create a stream for the file
+
+    const { cid } = await cluster.addData(fileStream, {
+      metadata: {
+        key: filePath, // Use relative path to preserve folder structure
+      },
+    });
+
+    console.log(`File ${filePath} uploaded with CID: ${cid.toString()}`);
+    fileCIDs.push({ filePath, cid: cid.toString() });
+  }
+
+  // Once all files are uploaded, create a directory CID (you'll need to manually organize the paths in this directory)
+  const directoryCID = await createDirectoryCID(fileCIDs);
+  console.log('Folder CID:', directoryCID);
+  return directoryCID;
+};
+
+// Function to create a directory CID (simulate creating a directory in IPFS)
+const createDirectoryCID = async (fileCIDs) => {
+  const directoryEntries = fileCIDs.map(({ filePath, cid }) => ({
+    path: filePath,
+    cid: cid,
+  }));
+
+  // This represents a Merkle directory. Upload the directory object to IPFS Cluster
+  const directoryStream = fs.createReadStream(directoryEntries); // You can use another method to form the directory object here.
+  const { cid } = await cluster.addData(directoryStream);
+  return cid.toString();
+};
+
+// Recursive function to read all files in the folder and subfolders
+const addFilesFromFolder = async (dirPath) => {
+  const files = [];
+  const items = fs.readdirSync(dirPath);
+
+  for (const item of items) {
+    const fullPath = path.join(dirPath, item);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      // Recurse into subdirectories
+      const subfolderFiles = await addFilesFromFolder(fullPath);
+      files.push(...subfolderFiles);
+    } else {
+      // Add file to the list
+      files.push({
+        path: path.relative(dirPath, fullPath),  // Relative file path
+        fullPath: fullPath,  // Full path of the file
+      });
+    }
+  }
+
+  return files;
+};
+
+// Endpoint to handle file upload
+router.get(
+  '/api/upload_zip',
+  middleware.requireMobileLogin,
+  async (req, res) => {
+    console.log('/api/upload_zip - called');
+    // step 1. username check
+    let userObject = getUserFromRequest(req);
+    if (userObject === undefined || userObject === null) {
+      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+    }
+    const userid = userObject.user_id;
+    console.log(`/api/upload_zip - User name is ${userid}`);
+
+    // step 2. tusId - uploaded file name check
+    const tusId = req.body.tusId;
+    if (tusId === tusId) {
+      return res.status(500).send({ error: "tusId not found in request body" });
+    }
+    console.log(`/api/upload_zip - tusId is ${tusId}`);
+    const filePath = path.resolve(
+      `${config.TUS_UPLOAD_PATH}/${req.body.thumbnail}`
+    );
+    console.log(`/api/upload_zip - zip file path is ${filePath}`);
+    const requiredFiles = ['manifest.m3u8', '480p_video.m3u8'];
+    let resultOfPins = [];
+    let errorMessage = '';
+
+    try {
+      // Unzip the file
+      const zip = new AdmZip(filePath);
+      const zipEntries = zip.getEntries();
+      const extractPath = path.join(config.TUS_UPLOAD_PATH, 'extracted', `${Date.now()}`);
+      console.log(`/api/upload_zip - extraction path is ${extractPath}`);
+
+      // Extract the file names in the ZIP
+      const fileNames = zipEntries.map((entry) => entry.entryName);
+
+      // Check if all required files are present
+      const allFilesPresent = requiredFiles.every((file) => fileNames.includes(file));
+
+      if (!allFilesPresent) {
+        return res.status(400).send({
+          message: 'Missing required files in the ZIP.',
+          requiredFiles,
+          foundFiles: fileNames,
+        });
+      }
+      console.log(`/api/upload_zip - extraction validation passed`);
+
+      fs.mkdirSync(extractPath, { recursive: true });
+      zip.extractAllTo(extractPath, true);
+      resultOfPins = await uploadFolderToCluster(extractPath);
+      console.log(`/api/upload_zip - Result of pins - ${JSON.stringify(resultOfPins)}`);
+
+      console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
+      fs.rmSync(extractPath, { recursive: true, force: true });
+      console.log("/api/upload_zip - Folder deleted successfully.");
+
+      // res.status(200).send({
+      //   message: 'ZIP file validated and extracted successfully!',
+      //   pins: resultOfPins,
+      // });
+    } catch (error) {
+      console.error('/api/upload_zip - Error processing ZIP file:', error);
+      // return res.status(500).send('Error processing ZIP file.');
+      errorMessage = `/api/upload_zip - Error processing ZIP file: ${error.toString()}`;
+    } finally {
+      // Optional: Delete the uploaded ZIP file after processing
+      console.log(`/api/upload_zip - deleting zip file - ${filePath}`);
+      fs.unlinkSync(filePath);
+      res.status(200).send({
+        errorMessage,
+        resultOfPins
+      });
+    }
+  }
+);
+
 export default router;

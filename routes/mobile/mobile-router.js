@@ -874,7 +874,7 @@ router.post(
 
     // step 2. tusId - uploaded file name check
     const tusId = req.body.tusId;
-    if (tusId === tusId) {
+    if (tusId === null) {
       return res.status(500).send({ error: "tusId not found in request body" });
     }
     console.log(`/api/upload_zip - tusId is ${tusId}`);

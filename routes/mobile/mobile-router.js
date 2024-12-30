@@ -878,7 +878,7 @@ router.post(
       return res.status(500).send({ error: "tusId not found in request body" });
     }
     console.log(`/api/upload_zip - tusId is ${tusId}`);
-    const filePath = path.resolve(
+    let filePath = path.resolve(
       `${config.TUS_UPLOAD_PATH}/${tusId}`
     );
     console.log(`/api/upload_zip - zip file path is ${filePath}`);
@@ -887,6 +887,9 @@ router.post(
     let errorMessage = '';
 
     try {
+      // rename it
+      await fs.rename(filePath, filePath + '.zip');
+      filePath = filePath + '.zip';
       // Unzip the file
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();

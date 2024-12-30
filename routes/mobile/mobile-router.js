@@ -888,7 +888,7 @@ router.post(
 
     try {
       // rename it
-      await fs.rename(filePath, filePath + '.zip');
+      fs.rename(filePath, filePath + '.zip');
       filePath = filePath + '.zip';
       // Unzip the file
       const zip = new AdmZip(filePath);

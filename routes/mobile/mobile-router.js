@@ -810,8 +810,7 @@ const uploadFolderToCluster = async (folderPath) => {
         key: filePath, // Use relative path to preserve folder structure
       },
     });
-
-    console.log(`File ${filePath} uploaded with CID: ${cid.toString()}`);
+    console.log(`/api/upload_zip - File ${filePath} uploaded with CID: ${cid.toString()}`);
     fileCIDs.push({ filePath, cid: cid.toString() });
   }
 
@@ -860,7 +859,7 @@ const addFilesFromFolder = async (dirPath) => {
 };
 
 // Endpoint to handle file upload
-router.get(
+router.post(
   '/api/upload_zip',
   middleware.requireMobileLogin,
   async (req, res) => {

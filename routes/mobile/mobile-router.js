@@ -798,7 +798,7 @@ router.post(
 );
 
 // Functions related to support upload of encoded videos
-
+/*
 const uploadFolderToCluster = async (folderPath) => {
   const files = await addFilesFromFolder(folderPath);
 
@@ -875,6 +875,64 @@ const addFilesFromFolder = async (dirPath) => {
 
   return files;
 };
+*/
+
+/**
+ * Recursively reads a folder and prepares files for upload.
+ * @param {string} folderPath - The path to the folder to upload.
+ * @returns {Array} An array of objects with { path, content } for upload.
+ */
+function readFolder(folderPath) {
+  console.log(`/api/upload_zip - Reading folder: ${folderPath}`);
+  const folderName = path.basename(folderPath);
+  const files = [];
+
+  function traverseDirectory(directory, relativePath = '') {
+    console.log(`/api/upload_zip - traverseDirectory: ${directory}`);
+    const items = fs.readdirSync(directory);
+    for (const item of items) {
+      const fullPath = path.join(directory, item);
+      const relativeItemPath = path.join(relativePath, item);
+
+      if (fs.statSync(fullPath).isFile()) {
+        console.log(`/api/upload_zip - Adding file: ${fullPath}`);
+        files.push({
+          path: path.join(folderName, relativeItemPath), // Maintain folder structure
+          content: fs.readFileSync(fullPath),
+        });
+      } else if (fs.statSync(fullPath).isDirectory()) {
+        traverseDirectory(fullPath, relativeItemPath);
+      }
+    }
+  }
+
+  traverseDirectory(folderPath);
+  return files;
+}
+
+/**
+* Uploads and pins a folder to IPFS Cluster.
+* @param {string} folderPath - The path to the folder.
+*/
+async function uploadAndPinFolder(folderPath) {
+  try {
+    // Prepare files for upload
+    const files = readFolder(folderPath);
+    console.log(`/api/upload_zip - Found ${files.length} files to upload.`);
+
+    // Upload to IPFS Cluster
+    const results = await cluster.add(files, { wrapWithDirectory: true });
+    const folderCID = results[results.length - 1].cid; // CID of the folder
+
+    console.log('/api/upload_zip - Folder CID:', folderCID);
+
+    // Pin the folder CID
+    const pinResult = await cluster.pin(folderCID);
+    console.log('/api/upload_zip - Pinning Result:', pinResult);
+  } catch (error) {
+    console.error('/api/upload_zip - Error uploading and pinning folder:', error.message);
+  }
+}
 
 async function renameZip(filePath) {
   return new Promise((resolve, reject) => {
@@ -944,7 +1002,7 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      resultOfPins = await uploadFolderToCluster(extractPath);
+      resultOfPins = await uploadAndPinFolder(extractPath);
       console.log(`/api/upload_zip - Result of pins - ${JSON.stringify(resultOfPins)}`);
 
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);

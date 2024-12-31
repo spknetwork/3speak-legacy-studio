@@ -910,8 +910,7 @@ router.post(
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
       folderCid = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
-      console.log(`/api/upload_zip - Result of pins - ${JSON.stringify(resultOfPins)}`);
-
+      console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });
       console.log("/api/upload_zip - Folder deleted successfully.");
@@ -928,7 +927,7 @@ router.post(
       fs.unlinkSync(filePath);
       res.status(200).send({
         folderCid,
-        resultOfPins
+        errorMessage
       });
     }
   }

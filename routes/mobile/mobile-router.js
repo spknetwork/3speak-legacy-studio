@@ -810,7 +810,7 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
   });
 
   try {
-    const response = await axios.post(`${clusterAPI}/add?recursive=true`, form, {
+    const response = await axios.post(`${clusterAPI}/add?recursive=true&wrap-with-directory=true`, form, {
       headers: form.getHeaders(),
     });
     console.log(`Response data in next line`);

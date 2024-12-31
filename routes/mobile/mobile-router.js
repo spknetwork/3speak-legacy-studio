@@ -13,9 +13,10 @@ import fs from "fs";
 import Axios from "axios";
 import moment from 'moment-timezone';
 
-import AdmZip from 'adm-zip';
-import axios from 'axios';
-import FormData from 'form-data';
+import AdmZip from 'adm-zip'; // 1. unzip
+import axios from 'axios'; // 2. post request to cluster
+import FormData from 'form-data'; // 3. request with form data
+import { create } from 'ipfs-only-hash'; // 4. get folder CID
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -797,29 +798,45 @@ router.post(
   }
 );
 
+// Function to pin a folder using IPFS Cluster API
 async function pinFolderWithCluster(folderPath, clusterAPI) {
-  const form = new FormData();
-
-  // Read and attach files to the FormData object
-  const files = fs.readdirSync(folderPath);
-  files.forEach((file) => {
-    const filePath = path.join(folderPath, file);
-    if (fs.lstatSync(filePath).isFile()) {
-      form.append('file', fs.createReadStream(filePath), file);
-    }
-  });
-
   try {
-    const response = await axios.post(`${clusterAPI}/add?recursive=true&wrap-with-directory=true`, form, {
-      headers: form.getHeaders(),
-    });
-    console.log(`Response data in next line`);
-    console.log(JSON.stringify(response.data));
-    console.log('Folder pinned with CID:', response.data.cid);
-    return response.data.cid;
+    const form = new FormData();
+    const folderContent = [];
+
+    // Read folder contents and attach files to the FormData object
+    const files = fs.readdirSync(folderPath);
+    for (const file of files) {
+      const filePath = path.join(folderPath, file);
+      if (fs.lstatSync(filePath).isFile()) {
+        form.append('file', fs.createReadStream(filePath), file);
+        folderContent.push({
+          path: file,
+          content: fs.readFileSync(filePath),
+        });
+      }
+    }
+
+    // Add files to IPFS Cluster
+    const response = await axios.post(
+      `${clusterAPI}/add?recursive=true&wrap-with-directory=true`,
+      form,
+      { headers: form.getHeaders() }
+    );
+
+    // Log uploaded file details
+    const addedFiles = response.data;
+    addedFiles.forEach((file) =>
+      console.log(`File: ${file.name}, CID: ${file.cid}, Size: ${file.size}`)
+    );
+
+    // Calculate folder CID locally
+    const folderCID = await create(folderContent, { wrapWithDirectory: true });
+    console.log('Derived Folder CID:', folderCID);
+
+    return folderCID;
   } catch (err) {
-    console.error('Error pinning folder to cluster:', err);
-    throw err;
+    console.error('Error pinning folder to cluster:', err.message);
   }
 }
 
@@ -863,7 +880,7 @@ router.post(
     );
     console.log(`/api/upload_zip - zip file path is ${filePath}`);
     const requiredFiles = ['manifest.m3u8', '480p_video.m3u8'];
-    let resultOfPins = [];
+    let folderCid = '';
     let errorMessage = '';
 
     try {
@@ -892,20 +909,14 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      resultOfPins = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
+      folderCid = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
       console.log(`/api/upload_zip - Result of pins - ${JSON.stringify(resultOfPins)}`);
 
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });
       console.log("/api/upload_zip - Folder deleted successfully.");
-
-      // res.status(200).send({
-      //   message: 'ZIP file validated and extracted successfully!',
-      //   pins: resultOfPins,
-      // });
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);
-      // return res.status(500).send('Error processing ZIP file.');
       errorMessage = `/api/upload_zip - Error processing ZIP file: ${error.toString()}`;
       const stackLines = error.stack.split('\n');
       if (stackLines[1]) {
@@ -916,7 +927,7 @@ router.post(
       console.log(`/api/upload_zip - deleting zip file - ${filePath}`);
       fs.unlinkSync(filePath);
       res.status(200).send({
-        errorMessage,
+        folderCid,
         resultOfPins
       });
     }

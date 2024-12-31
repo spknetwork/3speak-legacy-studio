@@ -814,8 +814,10 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
       headers: form.getHeaders(),
     });
     console.log('Folder pinned with CID:', response.data.cid);
+    return response.data.cid;
   } catch (err) {
     console.error('Error pinning folder to cluster:', err);
+    throw err;
   }
 }
 

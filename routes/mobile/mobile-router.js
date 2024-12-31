@@ -826,7 +826,7 @@ const uploadFolderToCluster = async (folderPath) => {
     console.error('/api/upload_zip - Error creating directory CID:', error);
     const stackLines = error.stack.split('\n');
     if (stackLines[1]) {
-      console.log('Error occurred at:', stackLines[1].trim());
+      console.log('/api/upload_zip - Error occurred at:', stackLines[1].trim());
     }
     throw error;
   }
@@ -841,13 +841,12 @@ const createDirectoryCID = async (fileCIDs) => {
 
   // This represents a Merkle directory. Upload the directory object to IPFS Cluster
   console.log('/api/upload_zip - CREATING Folder CID');
-  const directoryStream = fs.createReadStream(directoryEntries); // You can use another method to form the directory object here.
+  const directoryStream = Readable.from(JSON.stringify(directoryEntries)); // Convert directoryEntries to a readable stream
   const { cid } = await cluster.addData(directoryStream);
   console.log(`/api/upload_zip - DONE Folder ${cid.toString()}`);
   return cid.toString();
 };
 
-// Recursive function to read all files in the folder and subfolders
 const addFilesFromFolder = async (dirPath) => {
   const files = [];
   const items = fs.readdirSync(dirPath);

@@ -813,6 +813,8 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
     const response = await axios.post(`${clusterAPI}/add?recursive=true`, form, {
       headers: form.getHeaders(),
     });
+    console.log(`Response data in next line`);
+    console.log(JSON.stringify(response.data));
     console.log('Folder pinned with CID:', response.data.cid);
     return response.data.cid;
   } catch (err) {

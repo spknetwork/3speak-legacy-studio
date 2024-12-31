@@ -826,9 +826,9 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
     // Log uploaded file details
     console.log(`Response from axios is as follows`);
     console.log(response.data);
-    const text = `[${response.data.split("\n").join()}]`;
-    const cidData = JSON.parse(text);
-    const folderCid = cidData[cidData.length - 1].cid;
+    const textData = response.data.split("\n").filter(a => a.length > 0);
+    const cidData = JSON.parse(textData[textData.length - 1]);
+    const folderCid = cidData.cid;
     console.log('Folder CID:', folderCid);
     return folderCid;
   } catch (err) {

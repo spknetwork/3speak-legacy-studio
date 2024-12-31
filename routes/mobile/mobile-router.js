@@ -43,6 +43,7 @@ var dhiveClient = new dhive.Client([
 
 let cluster;
 if (process.env.ENV === "dev") {
+  console.log(`/api/upload_zip - IPFS Cluster URL: ${process.env.IPFS_CLUSTER_URL}`);
   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
     headers: {
       Authorization: process.env.IPFS_CLUSTER_AUTH
@@ -50,7 +51,9 @@ if (process.env.ENV === "dev") {
   });
 } else {
   cluster = new Cluster("http://localhost:9094", {});
+  console.log('/api/upload_zip - IPFS Cluster URL: http://localhost:9094');
 }
+
 
 function getUserFromRequest(req) {
   let user = req.session.user;
@@ -815,9 +818,18 @@ const uploadFolderToCluster = async (folderPath) => {
   }
 
   // Once all files are uploaded, create a directory CID (you'll need to manually organize the paths in this directory)
-  const directoryCID = await createDirectoryCID(fileCIDs);
-  console.log('Folder CID:', directoryCID);
-  return directoryCID;
+  try {
+    const directoryCID = await createDirectoryCID(fileCIDs);
+    console.log('/api/upload_zip - Folder CID:', directoryCID);
+    return directoryCID;
+  } catch (error) {
+    console.error('/api/upload_zip - Error creating directory CID:', error);
+    const stackLines = error.stack.split('\n');
+    if (stackLines[1]) {
+      console.log('Error occurred at:', stackLines[1].trim());
+    }
+    throw error;
+  }
 };
 
 // Function to create a directory CID (simulate creating a directory in IPFS)
@@ -828,8 +840,10 @@ const createDirectoryCID = async (fileCIDs) => {
   }));
 
   // This represents a Merkle directory. Upload the directory object to IPFS Cluster
+  console.log('/api/upload_zip - CREATING Folder CID');
   const directoryStream = fs.createReadStream(directoryEntries); // You can use another method to form the directory object here.
   const { cid } = await cluster.addData(directoryStream);
+  console.log(`/api/upload_zip - DONE Folder ${cid.toString()}`);
   return cid.toString();
 };
 
@@ -941,6 +955,10 @@ router.post(
       console.error('/api/upload_zip - Error processing ZIP file:', error);
       // return res.status(500).send('Error processing ZIP file.');
       errorMessage = `/api/upload_zip - Error processing ZIP file: ${error.toString()}`;
+      const stackLines = error.stack.split('\n');
+      if (stackLines[1]) {
+        console.log('Error occurred at:', stackLines[1].trim());
+      }
     } finally {
       // Optional: Delete the uploaded ZIP file after processing
       console.log(`/api/upload_zip - deleting zip file - ${filePath}`);

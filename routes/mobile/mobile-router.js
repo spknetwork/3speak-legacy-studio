@@ -825,10 +825,8 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
     );
 
     // Log uploaded file details
-    const addedFiles = response.data;
-    addedFiles.forEach((file) =>
-      console.log(`File: ${file.name}, CID: ${file.cid}, Size: ${file.size}`)
-    );
+    console.log(`Response from axios is as follows`);
+    console.log(response.data);
 
     // Calculate folder CID locally
     const folderCID = await ipfsOnlyHash.of(folderContent, { wrapWithDirectory: true });

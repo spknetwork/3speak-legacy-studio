@@ -890,6 +890,7 @@ router.post(
     if (tusId === null) {
       return res.status(500).send({ error: "tusId not found in request body" });
     }
+    tusId = tusId.replace("https://uploads.3speak.tv/files/", "");
     console.log(`/api/upload_zip - tusId is ${tusId}`);
     let filePath = path.resolve(
       `${config.TUS_UPLOAD_PATH}/${tusId}`

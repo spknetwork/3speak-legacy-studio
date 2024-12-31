@@ -12,6 +12,7 @@ import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
 import moment from 'moment-timezone';
+import { Readable } from 'stream';
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -842,7 +843,11 @@ const createDirectoryCID = async (fileCIDs) => {
   // This represents a Merkle directory. Upload the directory object to IPFS Cluster
   console.log('/api/upload_zip - CREATING Folder CID');
   const directoryStream = Readable.from(JSON.stringify(directoryEntries)); // Convert directoryEntries to a readable stream
-  const { cid } = await cluster.addData(directoryStream);
+  const { cid } = await cluster.addData(directoryStream, {
+    metadata: {
+      key: 'directory',
+    },
+  });
   console.log(`/api/upload_zip - DONE Folder ${cid.toString()}`);
   return cid.toString();
 };

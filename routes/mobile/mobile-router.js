@@ -16,7 +16,7 @@ import moment from 'moment-timezone';
 import AdmZip from 'adm-zip'; // 1. unzip
 import axios from 'axios'; // 2. post request to cluster
 import FormData from 'form-data'; // 3. request with form data
-import { create } from 'ipfs-only-hash'; // 4. get folder CID
+import ipfsOnlyHash from 'ipfs-only-hash'; // 4. get folder CID
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -831,7 +831,7 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
     );
 
     // Calculate folder CID locally
-    const folderCID = await create(folderContent, { wrapWithDirectory: true });
+    const folderCID = await ipfsOnlyHash.of(folderContent, { wrapWithDirectory: true });
     console.log('Derived Folder CID:', folderCID);
 
     return folderCID;

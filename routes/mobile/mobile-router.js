@@ -12,16 +12,16 @@ import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
 import moment from 'moment-timezone';
-import { Readable } from 'stream';
+
+import AdmZip from 'adm-zip';
+import axios from 'axios';
+import FormData from 'form-data';
 
 hive.api.setOptions({
   useAppbaseApi: true,
   url: `${HIVE_DEFAULT_NODE_PREFIX}://${HIVE_DEFAULT_NODE}`,
   // url: `https://techcoderx.com`
 });
-
-import AdmZip from 'adm-zip';
-
 
 import dhive from "@hiveio/dhive";
 var dhiveClient = new dhive.Client([
@@ -797,140 +797,25 @@ router.post(
   }
 );
 
-// Functions related to support upload of encoded videos
-/*
-const uploadFolderToCluster = async (folderPath) => {
-  const files = await addFilesFromFolder(folderPath);
+async function pinFolderWithCluster(folderPath, clusterAPI) {
+  const form = new FormData();
 
-  const fileCIDs = [];
-
-  // Upload each file to IPFS Cluster
-  for (const file of files) {
-    const filePath = file.path;
-    const fileStream = fs.createReadStream(file.fullPath); // Create a stream for the file
-
-    const { cid } = await cluster.addData(fileStream, {
-      metadata: {
-        key: filePath, // Use relative path to preserve folder structure
-      },
-    });
-    console.log(`/api/upload_zip - File ${filePath} uploaded with CID: ${cid.toString()}`);
-    fileCIDs.push({ filePath, cid: cid.toString() });
-  }
-
-  // Once all files are uploaded, create a directory CID (you'll need to manually organize the paths in this directory)
-  try {
-    const directoryCID = await createDirectoryCID(fileCIDs);
-    console.log('/api/upload_zip - Folder CID:', directoryCID);
-    return directoryCID;
-  } catch (error) {
-    console.error('/api/upload_zip - Error creating directory CID:', error);
-    const stackLines = error.stack.split('\n');
-    if (stackLines[1]) {
-      console.log('/api/upload_zip - Error occurred at:', stackLines[1].trim());
+  // Read and attach files to the FormData object
+  const files = fs.readdirSync(folderPath);
+  files.forEach((file) => {
+    const filePath = path.join(folderPath, file);
+    if (fs.lstatSync(filePath).isFile()) {
+      form.append('file', fs.createReadStream(filePath), file);
     }
-    throw error;
-  }
-};
-
-// Function to create a directory CID (simulate creating a directory in IPFS)
-const createDirectoryCID = async (fileCIDs) => {
-  const directoryEntries = fileCIDs.map(({ filePath, cid }) => ({
-    path: filePath,
-    cid: cid,
-  }));
-
-  // This represents a Merkle directory. Upload the directory object to IPFS Cluster
-  console.log('/api/upload_zip - CREATING Folder CID');
-  const directoryStream = Readable.from(JSON.stringify(directoryEntries)); // Convert directoryEntries to a readable stream
-  const { cid } = await cluster.addData(directoryStream, {
-    metadata: {
-      key: 'directory',
-    },
   });
-  console.log(`/api/upload_zip - DONE Folder ${cid.toString()}`);
-  return cid.toString();
-};
 
-const addFilesFromFolder = async (dirPath) => {
-  const files = [];
-  const items = fs.readdirSync(dirPath);
-
-  for (const item of items) {
-    const fullPath = path.join(dirPath, item);
-    const stat = fs.statSync(fullPath);
-
-    if (stat.isDirectory()) {
-      // Recurse into subdirectories
-      const subfolderFiles = await addFilesFromFolder(fullPath);
-      files.push(...subfolderFiles);
-    } else {
-      // Add file to the list
-      files.push({
-        path: path.relative(dirPath, fullPath),  // Relative file path
-        fullPath: fullPath,  // Full path of the file
-      });
-    }
-  }
-
-  return files;
-};
-*/
-
-/**
- * Recursively reads a folder and prepares files for upload.
- * @param {string} folderPath - The path to the folder to upload.
- * @returns {Array} An array of objects with { path, content } for upload.
- */
-function readFolder(folderPath) {
-  console.log(`/api/upload_zip - Reading folder: ${folderPath}`);
-  const folderName = path.basename(folderPath);
-  const files = [];
-
-  function traverseDirectory(directory, relativePath = '') {
-    console.log(`/api/upload_zip - traverseDirectory: ${directory}`);
-    const items = fs.readdirSync(directory);
-    for (const item of items) {
-      const fullPath = path.join(directory, item);
-      const relativeItemPath = path.join(relativePath, item);
-
-      if (fs.statSync(fullPath).isFile()) {
-        console.log(`/api/upload_zip - Adding file: ${fullPath}`);
-        files.push({
-          path: path.join(folderName, relativeItemPath), // Maintain folder structure
-          content: fs.readFileSync(fullPath),
-        });
-      } else if (fs.statSync(fullPath).isDirectory()) {
-        traverseDirectory(fullPath, relativeItemPath);
-      }
-    }
-  }
-
-  traverseDirectory(folderPath);
-  return files;
-}
-
-/**
-* Uploads and pins a folder to IPFS Cluster.
-* @param {string} folderPath - The path to the folder.
-*/
-async function uploadAndPinFolder(folderPath) {
   try {
-    // Prepare files for upload
-    const files = readFolder(folderPath);
-    console.log(`/api/upload_zip - Found ${files.length} files to upload.`);
-
-    // Upload to IPFS Cluster
-    const results = await cluster.add(files, { wrapWithDirectory: true });
-    const folderCID = results[results.length - 1].cid; // CID of the folder
-
-    console.log('/api/upload_zip - Folder CID:', folderCID);
-
-    // Pin the folder CID
-    const pinResult = await cluster.pin(folderCID);
-    console.log('/api/upload_zip - Pinning Result:', pinResult);
-  } catch (error) {
-    console.error('/api/upload_zip - Error uploading and pinning folder:', error.message);
+    const response = await axios.post(`${clusterAPI}/add?recursive=true`, form, {
+      headers: form.getHeaders(),
+    });
+    console.log('Folder pinned with CID:', response.data.cid);
+  } catch (err) {
+    console.error('Error pinning folder to cluster:', err);
   }
 }
 
@@ -966,7 +851,8 @@ router.post(
     if (tusId === null) {
       return res.status(500).send({ error: "tusId not found in request body" });
     }
-    tusId = tusId.replace("https://uploads.3speak.tv/files/", "");
+    const compsOftusId = tusId.split("/");
+    tusId = compsOftusId[compsOftusId.length - 1];
     console.log(`/api/upload_zip - tusId is ${tusId}`);
     let filePath = path.resolve(
       `${config.TUS_UPLOAD_PATH}/${tusId}`
@@ -1002,7 +888,7 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      resultOfPins = await uploadAndPinFolder(extractPath);
+      resultOfPins = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
       console.log(`/api/upload_zip - Result of pins - ${JSON.stringify(resultOfPins)}`);
 
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);

@@ -290,7 +290,7 @@ router.post(
         });
       }
     } catch (e) {
-      console.log("ERROR: /api/upload/newUpload", {
+      console.log("ERROR: /api/upload_info", {
         username: user.user_id,
       });
       console.log(e);
@@ -887,7 +887,7 @@ router.post(
       // Unzip the file
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();
-      const extractPath = path.join(config.TUS_UPLOAD_PATH, 'extracted', `${Date.now()}`);
+      const extractPath = path.join('./', 'extracted', `${Date.now()}`);
       console.log(`/api/upload_zip - extraction path is ${extractPath}`);
 
       // Extract the file names in the ZIP
@@ -987,8 +987,6 @@ router.post(
         video.declineRewards = req.body.declineRewards;
       }
       await video.save();
-      console.log(`/api/upload_zip - deleting zip file - ${filePath}`);
-      fs.unlinkSync(filePath);
       return res.send(video);
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);
@@ -997,8 +995,6 @@ router.post(
       if (stackLines[1]) {
         console.log('Error occurred at:', stackLines[1].trim());
       }
-      console.log(`/api/upload_zip - deleting zip file - ${filePath}`);
-      fs.unlinkSync(filePath);
       return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }

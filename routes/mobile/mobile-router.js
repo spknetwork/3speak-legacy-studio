@@ -16,7 +16,11 @@ import moment from 'moment-timezone';
 import AdmZip from 'adm-zip'; // 1. unzip
 import axios from 'axios'; // 2. post request to cluster
 import FormData from 'form-data'; // 3. request with form data
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 hive.api.setOptions({
   useAppbaseApi: true,

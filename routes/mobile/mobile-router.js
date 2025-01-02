@@ -938,6 +938,7 @@ router.post(
       }
       video.thumbnail = `ipfs://${folderCid}/thumbnail.jpg`;
       video.video_v2 = `ipfs://${folderCid}/manifest.m3u8`;
+      video.filename = `ipfs://${folderCid}/manifest.m3u8`;
       video.isNsfwContent = req.body.isNsfwContent;
       video.tags = req.body.tags;
       if (typeof req.body.tags === "string" && req.body.tags.length > 0) {

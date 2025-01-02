@@ -840,18 +840,18 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
   }
 }
 
-async function renameZip(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.rename(filePath, `${filePath}.zip`, (err) => {
-      if (err) {
-        console.error('Error renaming file:', err);
-        reject(err)
-      } else {
-        resolve(`${filePath}.zip`)
-      }
-    });
-  });
-}
+// async function renameZip(filePath) {
+//   return new Promise((resolve, reject) => {
+//     fs.rename(filePath, `${filePath}.zip`, (err) => {
+//       if (err) {
+//         console.error('Error renaming file:', err);
+//         reject(err)
+//       } else {
+//         resolve(`${filePath}.zip`)
+//       }
+//     });
+//   });
+// }
 
 // Endpoint to handle file upload
 router.post(
@@ -883,7 +883,7 @@ router.post(
 
     try {
       // rename it
-      filePath = await renameZip(filePath);
+      // filePath = await renameZip(filePath);
       // Unzip the file
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();

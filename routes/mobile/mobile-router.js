@@ -840,19 +840,6 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
   }
 }
 
-// async function renameZip(filePath) {
-//   return new Promise((resolve, reject) => {
-//     fs.rename(filePath, `${filePath}.zip`, (err) => {
-//       if (err) {
-//         console.error('Error renaming file:', err);
-//         reject(err)
-//       } else {
-//         resolve(`${filePath}.zip`)
-//       }
-//     });
-//   });
-// }
-
 // Endpoint to handle file upload
 router.post(
   '/api/upload_zip',
@@ -887,7 +874,7 @@ router.post(
       // Unzip the file
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();
-      const extractPath = path.join('./', 'extracted', `${Date.now()}`);
+      const extractPath = path.join(__dirname, 'extracted', `${Date.now()}`);
       console.log(`/api/upload_zip - extraction path is ${extractPath}`);
 
       // Extract the file names in the ZIP

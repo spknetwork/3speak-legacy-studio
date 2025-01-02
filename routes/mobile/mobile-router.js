@@ -928,7 +928,12 @@ router.post(
       video.owner = req.body.owner;
       video.created = Date.now();
       video.upload_type = "ipfs";
-      video.status = "published";
+      const [account] = await hive.api.getAccountsAsync([req.body.owner]);
+      if (account.posting.accountAuths.filter(e => e[0] === 'threespeak').length > 0) {
+        video.status = "published";
+      } else {
+        video.status = "publish_manual";
+      }
       video.title = req.body.title;
       video.description = req.body.description;
       video.local_filename = filePath;

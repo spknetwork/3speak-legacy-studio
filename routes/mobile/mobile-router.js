@@ -948,26 +948,26 @@ router.post(
         video.community = req.body.communityID;
         video.hive = req.body.communityID;
       }
+      const appBeneficiary = 'sagarkothari88';
       if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
-        // video.beneficiaries = req.body.beneficiaries;
         try {
           let beneficiaries = JSON.parse(req.body.beneficiaries);
           beneficiaries.append({
-            account: node_info.cryptoAccounts.hive,
+            account: appBeneficiary,
             weight: 100,
             src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
           });
           video.beneficiaries = JSON.stringify(beneficiaries);
         } catch {
           video.beneficiaries = JSON.stringify({
-            account: node_info.cryptoAccounts.hive,
+            account: appBeneficiary,
             weight: 100,
             src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
           });  
         }
       } else {
         video.beneficiaries = JSON.stringify({
-          account: node_info.cryptoAccounts.hive,
+          account: appBeneficiary,
           weight: 100,
           src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
         });

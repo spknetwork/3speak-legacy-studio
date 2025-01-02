@@ -826,9 +826,15 @@ async function pinFolderWithCluster(folderPath, clusterAPI) {
     console.log(response.data);
     const textData = response.data.split("\n").filter(a => a.length > 0);
     const cidData = JSON.parse(textData[textData.length - 1]);
+    const cidDataForThumbnail = JSON.parse(textData[textData.length - 2]);
     const folderCid = cidData.cid;
+    const thumbnailCid = cidDataForThumbnail.cid;
     console.log('Folder CID:', folderCid);
-    return folderCid;
+    console.log('thumbnailCid CID:', thumbnailCid);
+    return {
+      folderCid,
+      thumbnailCid
+    };
   } catch (err) {
     console.error('Error pinning folder to cluster:', err.message);
   }
@@ -901,7 +907,7 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      let folderCid = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
+      let { folderCid, thumbnailCid } = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });
@@ -936,7 +942,7 @@ router.post(
       if (req.body.isReel !== undefined && req.body.isReel === true) {
         video.isReel = true;
       }
-      video.thumbnail = `ipfs://${folderCid}/thumbnail.jpg`;
+      video.thumbnail = `ipfs://${thumbnailCid}`;
       video.video_v2 = `ipfs://${folderCid}/manifest.m3u8`;
       video.filename = `ipfs://${folderCid}/manifest.m3u8`;
       video.isNsfwContent = req.body.isNsfwContent;

@@ -871,7 +871,7 @@ router.post(
       `${config.TUS_UPLOAD_PATH}/${tusId}`
     );
     console.log(`/api/upload_zip - zip file path is ${filePath}`);
-    const requiredFiles = ['manifest.m3u8', '480p_video.m3u8'];
+    const requiredFiles = ['manifest.m3u8'];
 
     try {
       // rename it

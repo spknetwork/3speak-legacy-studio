@@ -44,7 +44,6 @@ var dhiveClient = new dhive.Client([
 
 let cluster;
 if (process.env.ENV === "dev") {
-  console.log(`/api/upload_zip - IPFS Cluster URL: ${process.env.IPFS_CLUSTER_URL}`);
   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
     headers: {
       Authorization: process.env.IPFS_CLUSTER_AUTH
@@ -52,7 +51,6 @@ if (process.env.ENV === "dev") {
   });
 } else {
   cluster = new Cluster("http://localhost:9094", {});
-  console.log('/api/upload_zip - IPFS Cluster URL: http://localhost:9094');
 }
 
 
@@ -876,8 +874,6 @@ router.post(
     );
     console.log(`/api/upload_zip - zip file path is ${filePath}`);
     const requiredFiles = ['manifest.m3u8', '480p_video.m3u8'];
-    let folderCid = '';
-    let errorMessage = '';
 
     try {
       // rename it
@@ -909,7 +905,83 @@ router.post(
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });
-      console.log("/api/upload_zip - Folder deleted successfully.");
+      // create a new video object.
+      let video = new mongoDB.Video();
+      let videoCount = await mongoDB.Video.countDocuments({
+        owner: userid,
+      });
+      if (videoCount === 0) {
+        video.firstUpload = true;
+      }
+      video.originalFilename = req.body.originalFilename;
+      video.permlink = randomstring
+        .generate({ length: 10, charset: "alphabetic" })
+        .toLowerCase();
+      video.duration = parseFloat(req.body.duration);
+      video.size = parseFloat(req.body.size);
+      if (req.body.width !== undefined) {
+        video.width = parseFloat(req.body.width);
+      }
+      if (req.body.height !== undefined) {
+        video.height = parseFloat(req.body.height);
+      }
+      video.owner = req.body.owner;
+      video.created = Date.now();
+      video.upload_type = "ipfs";
+      video.status = "published";
+      video.title = req.body.title;
+      video.description = req.body.description;
+      video.local_filename = filePath;
+      if (req.body.isReel !== undefined && req.body.isReel === true) {
+        video.isReel = true;
+      }
+      video.thumbnail = `ipfs://${folderCid}/thumbnail.jpg`;
+      video.video_v2 = `ipfs://${folderCid}/manifest.m3u8`;
+      video.isNsfwContent = req.body.isNsfwContent;
+      video.tags = req.body.tags;
+      if (typeof req.body.tags === "string" && req.body.tags.length > 0) {
+        video.tags_v2 = req.body.tags.split(",");
+      } else {
+        video.tags_v2 = [];
+      }
+      if (typeof req.body.communityID === "string" && req.body.communityID.length > 0) {
+        video.community = req.body.communityID;
+        video.hive = req.body.communityID;
+      }
+      if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
+        // video.beneficiaries = req.body.beneficiaries;
+        try {
+          let beneficiaries = JSON.parse(req.body.beneficiaries);
+          beneficiaries.append({
+            account: node_info.cryptoAccounts.hive,
+            weight: 100,
+            src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+          });
+          video.beneficiaries = JSON.stringify(beneficiaries);
+        } catch {
+          video.beneficiaries = JSON.stringify({
+            account: node_info.cryptoAccounts.hive,
+            weight: 100,
+            src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+          });  
+        }
+      } else {
+        video.beneficiaries = JSON.stringify({
+          account: node_info.cryptoAccounts.hive,
+          weight: 100,
+          src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+        });
+      }
+      if (typeof req.body.rewardPowerup === "boolean") {
+        video.rewardPowerup = req.body.rewardPowerup;
+      }
+      if (typeof req.body.declineRewards === "boolean") {
+        video.declineRewards = req.body.declineRewards;
+      }
+      await video.save();
+      console.log(`/api/upload_zip - deleting zip file - ${filePath}`);
+      fs.unlinkSync(filePath);
+      return res.send(video);
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);
       errorMessage = `/api/upload_zip - Error processing ZIP file: ${error.toString()}`;
@@ -917,14 +989,9 @@ router.post(
       if (stackLines[1]) {
         console.log('Error occurred at:', stackLines[1].trim());
       }
-    } finally {
-      // Optional: Delete the uploaded ZIP file after processing
       console.log(`/api/upload_zip - deleting zip file - ${filePath}`);
       fs.unlinkSync(filePath);
-      res.status(200).send({
-        folderCid,
-        errorMessage
-      });
+      return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }
 );

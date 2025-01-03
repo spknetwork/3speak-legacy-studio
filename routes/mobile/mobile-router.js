@@ -800,48 +800,39 @@ router.post(
   }
 );
 
-// Function to pin a folder using IPFS Cluster API
-async function pinFolderWithCluster(folderPath, clusterAPI) {
+async function pinFolderFilesIndividually(folderPath, clusterAPI) {
   try {
-    const form = new FormData();
     const folderContent = [];
-
-    // Read folder contents and attach files to the FormData object
     const files = fs.readdirSync(folderPath);
     for (const file of files) {
       const filePath = path.join(folderPath, file);
       if (fs.lstatSync(filePath).isFile()) {
+        const form = new FormData();
         form.append('file', fs.createReadStream(filePath), file);
-        folderContent.push({
-          path: file,
-          content: fs.readFileSync(filePath),
+        const response = await axios.post(`${clusterAPI}/add`, form, {
+          headers: form.getHeaders(),
         });
+        const fileCid = response.data.cid;
+        folderContent.push({ path: file, cid: fileCid });
       }
     }
-
-    // Add files to IPFS Cluster
-    const response = await axios.post(
+    const wrapForm = new FormData();
+    folderContent.forEach((file) => {
+      wrapForm.append('file', Buffer.from(file.cid), file.path);
+    });
+    const wrapResponse = await axios.post(
       `${clusterAPI}/add?recursive=true&wrap-with-directory=true`,
-      form,
-      { headers: form.getHeaders() }
+      wrapForm,
+      { headers: wrapForm.getHeaders() }
     );
-
-    // Log uploaded file details
-    console.log(`Response from axios is as follows`);
-    console.log(response.data);
-    const textData = response.data.split("\n").filter(a => a.length > 0);
-    const cidData = JSON.parse(textData[textData.length - 1]);
-    const cidDataForThumbnail = JSON.parse(textData[textData.length - 2]);
-    const folderCid = cidData.cid;
-    const thumbnailCid = cidDataForThumbnail.cid;
-    console.log('Folder CID:', folderCid);
-    console.log('thumbnailCid CID:', thumbnailCid);
+    const folderCid = wrapResponse.data.split("\n").filter(a => a.length > 0).map(a => JSON.parse(a)).pop().cid;
+    const thumbnailCid = folderContent[folderContent.length - 1].cid;
     return {
       folderCid,
       thumbnailCid
     };
   } catch (err) {
-    console.error('Error pinning folder to cluster:', err.message);
+    console.error('Error pinning folder files individually:', err.message);
   }
 }
 
@@ -899,7 +890,7 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      let { folderCid, thumbnailCid } = await pinFolderWithCluster(extractPath, 'http://localhost:9094');
+      let { folderCid, thumbnailCid } = await pinFolderFilesIndividually(extractPath, 'http://localhost:9094');
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });

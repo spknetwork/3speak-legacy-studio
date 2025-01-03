@@ -14,8 +14,7 @@ import Axios from "axios";
 import moment from 'moment-timezone';
 
 import AdmZip from 'adm-zip'; // 1. unzip
-import axios from 'axios'; // 2. post request to cluster
-import FormData from 'form-data'; // 3. request with form data
+import { Blob } from "buffer";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -48,15 +47,15 @@ var dhiveClient = new dhive.Client([
 ]);
 
 let cluster;
-if (process.env.ENV === "dev") {
-  cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
-    headers: {
-      Authorization: process.env.IPFS_CLUSTER_AUTH
-    },
-  });
-} else {
+// if (process.env.ENV === "dev") {
+//   cluster = new Cluster(process.env.IPFS_CLUSTER_URL, {
+//     headers: {
+//       Authorization: process.env.IPFS_CLUSTER_AUTH
+//     },
+//   });
+// } else {
   cluster = new Cluster("http://localhost:9094", {});
-}
+// }
 
 
 function getUserFromRequest(req) {
@@ -800,39 +799,27 @@ router.post(
   }
 );
 
-async function pinFolderFilesIndividually(folderPath, clusterAPI) {
-  try {
-    const folderContent = [];
-    const files = fs.readdirSync(folderPath);
-    for (const file of files) {
-      const filePath = path.join(folderPath, file);
-      if (fs.lstatSync(filePath).isFile()) {
-        const form = new FormData();
-        form.append('file', fs.createReadStream(filePath), file);
-        const response = await axios.post(`${clusterAPI}/add`, form, {
-          headers: form.getHeaders(),
-        });
-        const fileCid = response.data.cid;
-        folderContent.push({ path: file, cid: fileCid });
-      }
-    }
-    const wrapForm = new FormData();
-    folderContent.forEach((file) => {
-      wrapForm.append('file', Buffer.from(file.cid), file.path);
-    });
-    const wrapResponse = await axios.post(
-      `${clusterAPI}/add?recursive=true&wrap-with-directory=true`,
-      wrapForm,
-      { headers: wrapForm.getHeaders() }
-    );
-    const folderCid = wrapResponse.data.split("\n").filter(a => a.length > 0).map(a => JSON.parse(a)).pop().cid;
-    const thumbnailCid = folderContent[folderContent.length - 1].cid;
-    return {
+async function pinFolderToCluster(folderPath) {
+  const files = await fs.promises.readdir(folderPath)
+  const input = files.filter(e => e != 'video.zip').map(file => {
+      let buffer = fs.readFileSync(path.join(folderPath, file));
+      let blob = new Blob([buffer]);
+      blob.name = file;
+      return blob;
+  });
+  const result = await cluster.addDirectory(input, {
+      'replication-min': 1,
+      replicationFactorMin: 1,
+      'replication-max': 3,
+      replicationFactorMax: 3,
+      wrapWithDirectory: true
+  })
+  var folderCid = result.filter(e => e.name === '')[0].cid;
+  var thumbnailCid = result.filter(e => e.name.includes('thumbnail'))[0].cid;
+  
+  return {
       folderCid,
       thumbnailCid
-    };
-  } catch (err) {
-    console.error('Error pinning folder files individually:', err.message);
   }
 }
 
@@ -890,7 +877,7 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      let { folderCid, thumbnailCid } = await pinFolderFilesIndividually(extractPath, 'http://localhost:9094');
+      let { folderCid, thumbnailCid } = await pinFolderToCluster(extractPath);
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });
@@ -969,7 +956,8 @@ router.post(
       if (typeof req.body.declineRewards === "boolean") {
         video.declineRewards = req.body.declineRewards;
       }
-      await video.save();
+      // await video.save();
+      console.log(`Video object is ${JSON.stringify(video)}`);
       return res.send(video);
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);

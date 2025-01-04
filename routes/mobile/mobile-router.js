@@ -862,8 +862,8 @@ router.post(
       }
       let { folderCid, thumbnailCid } = responseData.data;
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
-      console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
-      fs.rmSync(extractPath, { recursive: true, force: true });
+      // console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
+      // fs.rmSync(extractPath, { recursive: true, force: true });
       // create a new video object.
       let video = new mongoDB.Video();
       let videoCount = await mongoDB.Video.countDocuments({

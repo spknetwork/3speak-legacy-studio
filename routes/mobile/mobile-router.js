@@ -852,7 +852,14 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      const responseData = await Axios.get(`http://localhost:13052/?extractPath=${extractPath}`);
+      let responseData = null;
+      try {
+        responseData = await Axios.get(`http://localhost:13052/?extractPath=${extractPath}`);
+      } catch (e) {
+        console.log(`error occured while pinning folder using external service`);
+        console.error(e);
+        return res.status(500).send({ error: `Error is ${e.toString()}` });
+      }
       let { folderCid, thumbnailCid } = responseData.data;
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);

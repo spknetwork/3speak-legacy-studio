@@ -852,9 +852,10 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
+      const newExtractPath = extractPath.replaceAll('/', '__');
       let responseData = null;
       try {
-        responseData = await Axios.get(`http://localhost:13052/?extractPath=${extractPath}`);
+        responseData = await Axios.get(`http://localhost:13052/?extractPath=${newExtractPath}`);
       } catch (e) {
         console.log(`error occured while pinning folder using external service`);
         console.error(e);

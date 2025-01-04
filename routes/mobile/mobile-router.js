@@ -14,7 +14,6 @@ import Axios from "axios";
 import moment from 'moment-timezone';
 
 import AdmZip from 'adm-zip'; // 1. unzip
-import { Blob } from "buffer";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -799,30 +798,6 @@ router.post(
   }
 );
 
-async function pinFolderToCluster(folderPath) {
-  const files = await fs.promises.readdir(folderPath)
-  const input = files.filter(e => e != 'video.zip').map(file => {
-      let buffer = fs.readFileSync(path.join(folderPath, file));
-      let blob = new Blob([buffer]);
-      blob.name = file;
-      return blob;
-  });
-  const result = await cluster.addDirectory(input, {
-      'replication-min': 1,
-      replicationFactorMin: 1,
-      'replication-max': 3,
-      replicationFactorMax: 3,
-      wrapWithDirectory: true
-  })
-  var folderCid = result.filter(e => e.name === '')[0].cid;
-  var thumbnailCid = result.filter(e => e.name.includes('thumbnail'))[0].cid;
-  
-  return {
-      folderCid,
-      thumbnailCid
-  }
-}
-
 // Endpoint to handle file upload
 router.post(
   '/api/upload_zip',
@@ -877,7 +852,8 @@ router.post(
 
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
-      let { folderCid, thumbnailCid } = await pinFolderToCluster(extractPath);
+      const responseData = await Axios.get(`http://localhost:13052/?extractPath=${extractPath}`);
+      let { folderCid, thumbnailCid } = responseData.data;
       console.log(`/api/upload_zip - Folder - ${folderCid}`);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });

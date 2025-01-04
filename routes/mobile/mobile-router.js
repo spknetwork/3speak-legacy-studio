@@ -961,10 +961,6 @@ router.post(
       return res.send(video);
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);
-      const stackLines = error.stack.split('\n');
-      if (stackLines[1]) {
-        console.log('Error occurred at:', stackLines[1].trim());
-      }
       return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }

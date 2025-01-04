@@ -825,22 +825,14 @@ router.post(
     );
     console.log(`/api/upload_zip - zip file path is ${filePath}`);
     const requiredFiles = ['manifest.m3u8'];
+    const zip = new AdmZip(filePath);
+    const zipEntries = zip.getEntries();
+    const extractPath = path.join(__dirname, 'extracted', `${Date.now()}`);
+    console.log(`/api/upload_zip - extraction path is ${extractPath}`);
 
     try {
-      // rename it
-      // filePath = await renameZip(filePath);
-      // Unzip the file
-      const zip = new AdmZip(filePath);
-      const zipEntries = zip.getEntries();
-      const extractPath = path.join(__dirname, 'extracted', `${Date.now()}`);
-      console.log(`/api/upload_zip - extraction path is ${extractPath}`);
-
-      // Extract the file names in the ZIP
       const fileNames = zipEntries.map((entry) => entry.entryName);
-
-      // Check if all required files are present
       const allFilesPresent = requiredFiles.every((file) => fileNames.includes(file));
-
       if (!allFilesPresent) {
         return res.status(400).send({
           message: 'Missing required files in the ZIP.',
@@ -849,22 +841,15 @@ router.post(
         });
       }
       console.log(`/api/upload_zip - extraction validation passed`);
-
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
       const newExtractPath = extractPath.replaceAll('/', '__');
-      let responseData = null;
-      try {
-        responseData = await Axios.get(`http://localhost:13052/?extractPath=${newExtractPath}`);
-      } catch (e) {
-        console.log(`error occured while pinning folder using external service`);
-        console.error(e);
-        return res.status(500).send({ error: `Error is ${e.toString()}` });
-      }
+      const responseData = await Axios.get(`http://localhost:13052/?extractPath=${newExtractPath}`);
       let { folderCid, thumbnailCid } = responseData.data;
-      console.log(`/api/upload_zip - Folder - ${folderCid}`);
-      // console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
-      // fs.rmSync(extractPath, { recursive: true, force: true });
+      console.log(`/api/upload_zip - folderCid - ${folderCid}`);
+      console.log(`/api/upload_zip - thumbnailCid - ${thumbnailCid}`);
+      console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
+      fs.rmSync(extractPath, { recursive: true, force: true });
       // create a new video object.
       let video = new mongoDB.Video();
       let videoCount = await mongoDB.Video.countDocuments({
@@ -945,6 +930,8 @@ router.post(
       return res.send(video);
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);
+      console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
+      fs.rmSync(extractPath, { recursive: true, force: true });
       return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }

@@ -925,7 +925,7 @@ router.post(
       if (typeof req.body.declineRewards === "boolean") {
         video.declineRewards = req.body.declineRewards;
       }
-      // await video.save();
+      await video.save();
       console.log(`Video object is ${JSON.stringify(video)}`);
       return res.send(video);
     } catch (error) {

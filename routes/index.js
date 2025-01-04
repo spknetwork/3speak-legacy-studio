@@ -145,7 +145,7 @@ router.get('/my-videos', middleware.requireLogin, middleware.requireIdentity, as
         query.userId = req.session.user.user_id;
     }
 
-    const statusOptions = ["uploaded", "encoding", "published", "deleted", "encoding_failed", "encoding_queued"];
+    const statusOptions = ["uploaded", "encoding", "published", "deleted", "encoding_failed", "encoding_queued", "ipfs_pinning_failed", "ipfs_pinning"];
     let { status = undefined } = req.query;
     if (status !== undefined) {
         if (statusOptions.includes(status)) {
@@ -189,7 +189,7 @@ router.get('/my-videos', middleware.requireLogin, middleware.requireIdentity, as
                         video.visible_status = `Finalizing`
                     } else if (job.status === "assigned") {
                         video.visible_status = `Assigned to encoding node`
-                    } else if (job.status === "failed" || job.status === "encoding_failed") {
+                    } else if (job.status === "failed" || job.status === "encoding_failed" || job.status ==="ipfs_pinning_failed") {
                         video.visible_status = `Encoding Failed. If you want this video to be published please upload it again.`
                     } else {
                         video.visible_status = job.status
@@ -218,7 +218,7 @@ router.get('/my-videos', middleware.requireLogin, middleware.requireIdentity, as
                 video.visible_status = 'Deleted'
             } else if (video.status === "published") {
                 video.visible_status = "Published"
-            } else if (video.status === 'encoding_failed') {
+            } else if (video.status === 'encoding_failed' || video.status === 'ipfs_pinning_failed') {
                 video.visible_status = "Encoding Failed. If you want this video to be published please upload it again."
             } else if (video.status === "encoding_queued") {
                 video.visible_status = "Queued for encoding<br><b class=\"text-danger\">Please do not attempt to re-upload unless the status reads \"Encoding Failed\"</b>"

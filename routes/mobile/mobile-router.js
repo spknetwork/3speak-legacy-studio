@@ -53,7 +53,7 @@ let cluster;
 //     },
 //   });
 // } else {
-  cluster = new Cluster("http://localhost:9094", {});
+cluster = new Cluster("http://localhost:9094", {});
 // }
 
 
@@ -82,12 +82,12 @@ router.get("/login", async (req, res) => {
       });
     }
 
-    let contentCreator = await mongoDB.User.findOne({user_id: username});
+    let contentCreator = await mongoDB.User.findOne({ user_id: username });
     if (contentCreator !== null && contentCreator.banned === true) {
-        const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
-        return res.render("banned", {banReason, user: contentCreator.email})
+      const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
+      return res.render("banned", { banReason, user: contentCreator.email })
     } else if (contentCreator !== null && contentCreator.self_deleted === true) {
-      const message =`No 3Speak Account found with name - ${username}`;
+      const message = `No 3Speak Account found with name - ${username}`;
       return res.status(500).send({ error: message });
     }
 
@@ -99,7 +99,7 @@ router.get("/login", async (req, res) => {
         "You were permanently banned from using 3Speak for violating our Terms of Service.";
       return res.status(500).send({ error: banReason });
     } else if (mobileUser !== null && mobileUser.self_deleted === true) {
-      const message =`No 3Speak Account found with name - ${username}`;
+      const message = `No 3Speak Account found with name - ${username}`;
       return res.status(500).send({ error: message });
     }
 
@@ -415,32 +415,32 @@ router.get("/api/account/delete", middleware.requireMobileLogin, async (req, res
     return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
   }
   const user = userObject.user_id;
-  await mongoDB.Video.updateMany({ status: "published", owner: user }, {$set: {status: "self_deleted"}});
-  await mongoDB.MobileUser.updateMany({user_id: user}, {$set: {self_deleted: true}});
-  await mongoDB.User.updateMany({user_id: user}, {$set: {self_deleted: true}});
+  await mongoDB.Video.updateMany({ status: "published", owner: user }, { $set: { status: "self_deleted" } });
+  await mongoDB.MobileUser.updateMany({ user_id: user }, { $set: { self_deleted: true } });
+  await mongoDB.User.updateMany({ user_id: user }, { $set: { self_deleted: true } });
   return res.send({ success: true, message: '3Speak Account Deleted.' });
 });
 
 router.get('/api/video/:id/delete', middleware.requireMobileLogin, async (req, res) => {
-    let userObject = getUserFromRequest(req);
-    if (userObject === undefined || userObject === null) {
-      return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
-    }
-    const user = userObject.user_id;
-    let { id } = req.params;
-    let video = await mongoDB.Video.findOne({
-        permlink: id,
-        owner: user,
-    });
+  let userObject = getUserFromRequest(req);
+  if (userObject === undefined || userObject === null) {
+    return res.status(500).send({ error: "Either session/token expired or session/token not found in request." });
+  }
+  const user = userObject.user_id;
+  let { id } = req.params;
+  let video = await mongoDB.Video.findOne({
+    permlink: id,
+    owner: user,
+  });
 
-    if (video === null) {
-      return res.status(500).send({ error: 'Video not found' });
-    }
+  if (video === null) {
+    return res.status(500).send({ error: 'Video not found' });
+  }
 
-    video.status = "deleted";
-    video.indexed = false;
-    await video.save();
-    return res.send({ success: true, message: 'Video deleted successfully.' });
+  video.status = "deleted";
+  video.indexed = false;
+  await video.save();
+  return res.send({ success: true, message: 'Video deleted successfully.' });
 });
 
 router.get(
@@ -477,7 +477,7 @@ router.get(
 
       //Fetch external encoding data.
       let job;
-      if (video.job_id && video.status !== 'published' && video.status !== 'publish_manual' && video.status !== 'encoding_failed' ) {
+      if (video.job_id && video.status !== 'published' && video.status !== 'publish_manual' && video.status !== 'encoding_failed' && video.status !== "ipfs_pinning" && video.status !== "ipfs_pinning_failed") {
         try {
           const { data: info } = await Axios.get(
             `${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`
@@ -504,9 +504,9 @@ router.get(
             video.visible_status = `${Math.round(job.progress.pct)}%`;
           } else if (job.status === "queued") {
             video.visible_status = `Queued. Position in queue ${info.rank}`;
-          } else if (job.status === "uploading") {
+          } else if (job.status === "uploading" || job.status === "ipfs_pinning") {
             video.visible_status = `Finalizing`;
-          } else if (job.status === "failed" || job.status === "encoding_failed") {
+          } else if (job.status === "failed" || job.status === "encoding_failed" || job.status === "ipfs_pinning_failed") {
             video.visible_status = `Failed`;
           } else {
             video.visible_status = job.status || "Status unavailable";
@@ -528,7 +528,7 @@ router.get(
           video.visible_status = "Deleted";
         } else if (video.status === "published") {
           video.visible_status = "Published";
-        } else if (video.status === "encoding_failed") {
+        } else if (video.status === "encoding_failed" || job.status === "ipfs_pinning_failed") {
           video.visible_status =
             "Encoding Failed. If you want this video to be published please upload it again.";
         } else if (video.status === "encoding_queued") {
@@ -620,16 +620,16 @@ router.get("/api/feed/home", async (req, res) => {
 });
 
 router.get("/api/feed/trending", async (req, res) => {
-  let lastWeek = moment().subtract(7,'day').toDate();
-  await sendFeedResponse(req, res, { created: {$gt: lastWeek} });
+  let lastWeek = moment().subtract(7, 'day').toDate();
+  await sendFeedResponse(req, res, { created: { $gt: lastWeek } });
 });
 
 router.get("/api/feed/new", async (req, res) => {
-  await sendFeedResponse(req, res, { });
+  await sendFeedResponse(req, res, {});
 });
 
 router.get("/api/feed/first", async (req, res) => {
-  await sendFeedResponse(req, res, { firstUpload: true, owner: {$ne: 'guest-account'} });
+  await sendFeedResponse(req, res, { firstUpload: true, owner: { $ne: 'guest-account' } });
 });
 
 router.get("/api/feed/user/@:user", async (req, res) => {
@@ -643,7 +643,7 @@ router.get("/api/video/@:user/:permlink", async (req, res) => {
   query.permlink = req.params.permlink;
   const record = await mongoDB.Video.find(query).limit(queryLimit);
   if (record.length > 0) {
-    res.send({video_status: record[0].status});
+    res.send({ video_status: record[0].status });
   } else {
     return res.status(500).json(`Video @${query.owner}/${query.permlink} not found.`)
   }
@@ -677,8 +677,8 @@ router.post(
       video.permlink = randomstring
         .generate({ length: 10, charset: "alphabetic" })
         .toLowerCase();
-        video.duration = parseFloat(req.body.duration);
-        video.size = parseFloat(req.body.size);
+      video.duration = parseFloat(req.body.duration);
+      video.size = parseFloat(req.body.size);
       video.owner = user.user_id;
       video.created = Date.now();
       video.title = req.body.title;
@@ -844,12 +844,6 @@ router.post(
       fs.mkdirSync(extractPath, { recursive: true });
       zip.extractAllTo(extractPath, true);
       const newExtractPath = extractPath.replaceAll('/', '__');
-      const responseData = await Axios.get(`http://localhost:13052/?extractPath=${newExtractPath}`);
-      let { folderCid, thumbnailCid } = responseData.data;
-      console.log(`/api/upload_zip - folderCid - ${folderCid}`);
-      console.log(`/api/upload_zip - thumbnailCid - ${thumbnailCid}`);
-      console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
-      fs.rmSync(extractPath, { recursive: true, force: true });
       // create a new video object.
       let video = new mongoDB.Video();
       let videoCount = await mongoDB.Video.countDocuments({
@@ -873,17 +867,8 @@ router.post(
       video.owner = req.body.owner;
       video.created = Date.now();
       video.upload_type = "ipfs";
-      const [account] = await hive.api.getAccountsAsync([req.body.owner]);
-      video.status = "published";
       video.title = req.body.title;
       video.description = req.body.description;
-      video.local_filename = filePath;
-      if (req.body.isReel !== undefined && req.body.isReel === true) {
-        video.isReel = true;
-      }
-      video.thumbnail = `ipfs://${thumbnailCid}`;
-      video.video_v2 = `ipfs://${folderCid}/manifest.m3u8`;
-      video.filename = `ipfs://${folderCid}/manifest.m3u8`;
       video.isNsfwContent = req.body.isNsfwContent;
       video.tags = req.body.tags;
       if (typeof req.body.tags === "string" && req.body.tags.length > 0) {
@@ -910,7 +895,7 @@ router.post(
             account: appBeneficiary,
             weight: 100,
             src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
-          });  
+          });
         }
       } else {
         video.beneficiaries = JSON.stringify({
@@ -925,14 +910,42 @@ router.post(
       if (typeof req.body.declineRewards === "boolean") {
         video.declineRewards = req.body.declineRewards;
       }
+      video.status = 'ipfs_pinning';
       await video.save();
-      console.log(`Video object is ${JSON.stringify(video)}`);
-      return res.send(video);
+      res.send({ message: 'Encoded video upload received. Please wait while we pin it to IPFS infrastructure. As soon as it is pinned, video will be published by threespeak if you have given posting authority. In case if you have not given posting authority, you can go to my videos and publish it on your own.', video: video });
+      try {
+        const responseData = await Axios.get(`http://localhost:13052/?extractPath=${newExtractPath}`);
+        let { folderCid, thumbnailCid } = responseData.data;
+        console.log(`/api/upload_zip - folderCid - ${folderCid}`);
+        console.log(`/api/upload_zip - thumbnailCid - ${thumbnailCid}`);
+        console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
+        fs.rmSync(extractPath, { recursive: true, force: true });
+        const [account] = await hive.api.getAccountsAsync([req.body.owner]);
+        const postingAuths = account.posting.account_auths
+        const threespeakAuth = postingAuths.filter(a => a[0] === 'threespeak');
+        if (threespeakAuth.length > 0) {
+          video.status = "published";
+        } else {
+          video.status = "publish_manual";
+        }
+        video.local_filename = filePath;
+        if (req.body.isReel !== undefined && req.body.isReel === true) {
+          video.isReel = true;
+        }
+        video.thumbnail = `ipfs://${thumbnailCid}`;
+        video.video_v2 = `ipfs://${folderCid}/manifest.m3u8`;
+        video.filename = `ipfs://${folderCid}/manifest.m3u8`;
+        await video.save();
+        console.log(`3speak - mobile app - encoded Video upload object is ${JSON.stringify(video, null, 4)}`);
+      } catch (e) {
+        video.status = 'ipfs_pinning_failed';
+        await video.save();
+      }
     } catch (error) {
       console.error('/api/upload_zip - Error processing ZIP file:', error);
       console.log(`/api/upload_zip - Deleting folder: ${extractPath}`);
       fs.rmSync(extractPath, { recursive: true, force: true });
-      return res.status(500).send({ error: `Error is ${e.toString()}` });
+      // return res.status(500).send({ error: `Error is ${e.toString()}` });
     }
   }
 );

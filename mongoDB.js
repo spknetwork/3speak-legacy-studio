@@ -127,7 +127,7 @@ const VideoSchema = new mongoose.Schema({
     description: String,
     status: {
         type: String,
-        enum: ["uploaded", "encoding", "saving", "published", "deleted", "encoding_failed", "encoding_queued", "encoding_halted_time", "encoding_queued_vod", "scheduled", "encoding_ipfs", "encoding_preparing", "publish_manual", "self_deleted", "beneficiary_check_failed"],
+        enum: ["uploaded", "encoding", "saving", "published", "deleted", "encoding_failed", "encoding_queued", "encoding_halted_time", "encoding_queued_vod", "scheduled", "encoding_ipfs", "encoding_preparing", "publish_manual", "self_deleted", "beneficiary_check_failed", "ipfs_pinning", "ipfs_pinning_failed"],
         default: 'uploaded',
         required: true
     },

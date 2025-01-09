@@ -13,7 +13,7 @@
     "@hiveio/dhive": "^1.2.0",
     "@hiveio/hive-js": "^2.0.4",
     "@mux/mux-node": "^2.8.1",
-    "@nftstorage/ipfs-cluster": "github:spknetwork/ipfs-cluster",
+    "@nftstorage/ipfs-cluster": "https://github.com/spknetwork/ipfs-cluster.git",
     "@sentry/node": "^5.30.0",
     "@web-std/fetch": "^3.0.3",
     "@web-std/file": "^1.1.4",

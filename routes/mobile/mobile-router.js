@@ -963,7 +963,7 @@ router.post("/report-user", middleware.requireMobileLogin, async (req, res) => {
       const newRecord = new mongoDB.ReportedUser({
         name: req.body.username,
         reason: req.body.reason,
-        reportedBy: req.username,
+        reportedBy: req.user.user_id,
       });
       await newRecord.save();
       return res.send({
@@ -1005,7 +1005,7 @@ router.post("/report-post", middleware.requireMobileLogin, async (req, res) => {
         name: req.body.username,
         permlink: req.body.permlink,
         reason: req.body.reason,
-        reportedBy: req.username,
+        reportedBy: req.user.user_id,
       });
       await newRecord.save();
       return res.send({

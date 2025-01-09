@@ -67,6 +67,7 @@ async function requireMobileLogin(req, res, next) {
       });
       await cCreator.save();
     }
+    req.user = user;
     next();
   } else {
     const reason =

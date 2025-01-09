@@ -530,7 +530,7 @@ router.get(
           video.visible_status = "Deleted";
         } else if (video.status === "published") {
           video.visible_status = "Published";
-        } else if (video.status === "encoding_failed" || job.status === "ipfs_pinning_failed") {
+        } else if (video.status === "encoding_failed" || video.status === "ipfs_pinning_failed") {
           video.visible_status =
             "Encoding Failed. If you want this video to be published please upload it again.";
         } else if (video.status === "encoding_queued") {

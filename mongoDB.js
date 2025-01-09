@@ -351,6 +351,51 @@ const PodcastSchema = new mongoose.Schema({
     podcast_languages: Array
 });
 
+const ReportedDataSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    permlink: {
+        type: String,
+        required: true,
+    },
+    reportedBy: {
+        type: String,
+        required: true,
+    },
+    reason: {
+        type: String,
+        required: true,
+    },
+    createdAt: {
+        type: Date,
+        required: true,
+        default: new Date(),
+    }
+});
+
+const ReportedUserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        index: true,
+    },
+    reportedBy: {
+        type: String,
+        required: true,
+    },
+    reason: {
+        type: String,
+        required: true,
+    },
+    createdAt: {
+        type: Date,
+        required: true,
+        default: new Date(),
+    }
+});
+
 const VideoBoost = mongoose.model("VideoBoost", VideoBoostSchema);
 const ChatBotToken = mongoose.model("ChatBotToken", ChatBotTokenSchema);
 const HiveAccountChallenge = mongoose.model("HiveAccountChallenge", HiveAccountChallengeSchema);
@@ -380,6 +425,8 @@ const InboxVerification = mongoose.model('InboxVerification', InboxVerificationS
 const Donation = mongoose.model('Donation', DonationSchema);
 const DonationAccountTypes = mongoose.model('DonationAccountTypes', DonationAccountTypesSchema)
 const Podcast = mongoose.model('Podcast', PodcastSchema)
+const ReportedData = mongoose.model("ReportedData", ReportedDataSchema);
+const ReportedUser = mongoose.model("ReportedUser", ReportedUserSchema);
 
 async function updateBalance(user) {
     const tx = await Transaction.aggregate([
@@ -480,4 +527,6 @@ export default {
   Donation,
   DonationAccountTypes,
   Podcast,
+  ReportedData,
+  ReportedUser,
 };

@@ -17,6 +17,8 @@ import AdmZip from 'adm-zip'; // 1. unzip
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+import Joi from "joi";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -949,5 +951,87 @@ router.post(
     }
   }
 );
+
+router.post("/report-user", middleware.requireMobileLogin, async (req, res) => {
+  try {
+    const schema = Joi.object().keys({
+      username: Joi.string(),
+      reason: Joi.string(),
+    });
+    try {
+      const value = await schema.validateAsync(req.body);
+      const newRecord = new mongoDB.ReportedUser({
+        name: req.body.username,
+        reason: req.body.reason,
+        reportedBy: req.username,
+      });
+      await newRecord.save();
+      return res.send({
+        message: "User has been reported successfully",
+      });
+    } catch (err) {
+      return res.status(422).json({
+        error: err.toString(),
+      });
+    }
+  } catch (e) {
+    return res.status(500).json({
+      error: e.toString(),
+    });
+  }
+});
+
+router.get("/reported-users", middleware.requireMobileLogin, async (req, res) => {
+  try {
+    const records = await mongoDB.ReportedUser.find();
+    return res.send(records);
+  } catch (e) {
+    return res.status(500).json({
+      error: e.toString(),
+    });
+  }
+});
+
+router.post("/report-post", middleware.requireMobileLogin, async (req, res) => {
+  try {
+    const schema = Joi.object().keys({
+      username: Joi.string(),
+      permlink: Joi.string(),
+      reason: Joi.string(),
+    });
+    try {
+      const value = await schema.validateAsync(req.body);
+      const newRecord = new mongoDB.ReportedData({
+        name: req.body.username,
+        permlink: req.body.permlink,
+        reason: req.body.reason,
+        reportedBy: req.username,
+      });
+      await newRecord.save();
+      return res.send({
+        message: "Post has been reported successfully",
+      });
+    } catch (err) {
+      return res.status(422).json({
+        error: err.toString(),
+      });
+    }
+  } catch (e) {
+    return res.status(500).json({
+      error: e.toString(),
+    });
+  }
+});
+
+router.get("/reported-posts", middleware.requireMobileLogin, async (req, res) => {
+  try {
+    const records = await mongoDB.ReportedData.find();
+    return res.send(records);
+  } catch (e) {
+    return res.status(500).json({
+      error: e.toString(),
+    });
+  }
+});
 
 export default router;

@@ -981,7 +981,7 @@ router.post("/report-user", middleware.requireMobileLogin, async (req, res) => {
   }
 });
 
-router.get("/reported-users", middleware.requireMobileLogin, async (req, res) => {
+router.get("/reported-users", async (req, res) => {
   try {
     const records = await mongoDB.ReportedUser.find();
     return res.send(records);
@@ -1023,7 +1023,7 @@ router.post("/report-post", middleware.requireMobileLogin, async (req, res) => {
   }
 });
 
-router.get("/reported-posts", middleware.requireMobileLogin, async (req, res) => {
+router.get("/reported-posts", async (req, res) => {
   try {
     const records = await mongoDB.ReportedData.find();
     return res.send(records);

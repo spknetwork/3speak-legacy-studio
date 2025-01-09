@@ -355,10 +355,12 @@ const ReportedDataSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
+        index: true,
     },
     permlink: {
         type: String,
         required: true,
+        index: true,
     },
     reportedBy: {
         type: String,

@@ -960,23 +960,23 @@ router.post("/report-user", middleware.requireMobileLogin, async (req, res) => {
     });
     try {
       const value = await schema.validateAsync(req.body);
-      const newRecord = new mongoDB.ReportedUser({
-        name: req.body.username,
-        reason: req.body.reason,
-        reportedBy: req.user.user_id,
-      });
-      await newRecord.save();
+      const result = await mongoDB.ReportedUser.findOneAndUpdate(
+        { name: req.body.username }, // check if exists
+        { $setOnInsert: {name: req.body.username, reason: req.body.reason, reportedBy: req.user.user_id}},
+        { upsert: true, new: true, setDefaultsOnInsert: true } // Options
+      );
       return res.send({
         message: "User has been reported successfully",
+        data: result,
       });
     } catch (err) {
       return res.status(422).json({
-        error: err.toString(),
+        error: err.message,
       });
     }
   } catch (e) {
     return res.status(500).json({
-      error: e.toString(),
+      error: e.message,
     });
   }
 });
@@ -1001,19 +1001,18 @@ router.post("/report-post", middleware.requireMobileLogin, async (req, res) => {
     });
     try {
       const value = await schema.validateAsync(req.body);
-      const newRecord = new mongoDB.ReportedData({
-        name: req.body.username,
-        permlink: req.body.permlink,
-        reason: req.body.reason,
-        reportedBy: req.user.user_id,
-      });
-      await newRecord.save();
+      const result = await mongoDB.ReportedData.findOneAndUpdate(
+        { name: req.body.username, permlink: req.body.permlink }, // check if exists
+        { $setOnInsert: {name: req.body.username, permlink: req.body.permlink, reason: req.body.reason, reportedBy: req.user.user_id}},
+        { upsert: true, new: true, setDefaultsOnInsert: true } // Options
+      );
       return res.send({
         message: "Post has been reported successfully",
+        data: result,
       });
     } catch (err) {
       return res.status(422).json({
-        error: err.toString(),
+        error: err.message,
       });
     }
   } catch (e) {

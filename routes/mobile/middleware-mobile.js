@@ -109,7 +109,8 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
     }
     const fromMobile =
       video !== null && video !== undefined ? video.fromMobile : true;
-    const sagar = beneficiaries.filter((o) => o.account === "sagarkothari88");
+    const mobileAppDevName = "sagarkothari88";
+    const sagar = beneficiaries.filter((o) => o.account === mobileAppDevName);
     const spkBeneficiary = beneficiaries.filter(
       (o) => o.account === "spk.beneficiary"
     );
@@ -118,8 +119,8 @@ async function hasValidPostBeneficiariesAndPayout(author, permlink) {
       fromMobile !== null &&
       fromMobile === true
     ) {
-      if (sagar.length === 0 || spkBeneficiary.length === 0) return false;
-      const sagarBenWeight = sagar[0].weight;
+      if ((sagar.length === 0 && video.owner !== mobileAppDevName) || spkBeneficiary.length === 0) return false;
+      const sagarBenWeight = video.owner === mobileAppDevName ? 100 : sagar[0].weight;
       const spkBeneficiaryWeight = spkBeneficiary[0].weight;
       if (
         sagarBenWeight === undefined ||

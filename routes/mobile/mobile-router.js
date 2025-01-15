@@ -866,7 +866,7 @@ router.post(
       if (req.body.height !== undefined) {
         video.height = parseFloat(req.body.height);
       }
-      video.owner = req.body.owner;
+      video.owner = userid;
       video.created = Date.now();
       video.upload_type = "ipfs";
       video.title = req.body.title;
@@ -883,16 +883,26 @@ router.post(
         video.hive = req.body.communityID;
       }
       const appBeneficiary = 'sagarkothari88';
-      if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
-        try {
-          let beneficiaries = JSON.parse(req.body.beneficiaries);
-          beneficiaries.append({
-            account: appBeneficiary,
-            weight: 100,
-            src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
-          });
-          video.beneficiaries = JSON.stringify(beneficiaries);
-        } catch {
+      if (userid !== appBeneficiary) {
+        if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
+          try {
+            let beneficiaries = JSON.parse(req.body.beneficiaries);
+            beneficiaries.push({
+              account: appBeneficiary,
+              weight: 100,
+              src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+            });
+            video.beneficiaries = JSON.stringify(beneficiaries);
+          } catch(e) {
+            console.log(`Error while parsing beneficiaries. request sent this - ${req.body.beneficiaries}`);
+            console.error(e);
+            video.beneficiaries = JSON.stringify({
+              account: appBeneficiary,
+              weight: 100,
+              src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+            });
+          }
+        } else {
           video.beneficiaries = JSON.stringify({
             account: appBeneficiary,
             weight: 100,
@@ -900,11 +910,9 @@ router.post(
           });
         }
       } else {
-        video.beneficiaries = JSON.stringify({
-          account: appBeneficiary,
-          weight: 100,
-          src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
-        });
+        if (typeof req.body.beneficiaries === "string" && req.body.beneficiaries.length > 0) {
+          video.beneficiaries = JSON.stringify(req.body.beneficiaries);
+        }
       }
       if (typeof req.body.rewardPowerup === "boolean") {
         video.rewardPowerup = req.body.rewardPowerup;

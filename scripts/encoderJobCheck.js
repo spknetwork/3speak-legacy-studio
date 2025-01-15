@@ -24,6 +24,7 @@ void (async () => {
         if(!job.result?.cid) {
             continue;
         }
+        const mobileAppDevName = 'sagarkothari88';
         if(job.status === "complete") {
             const completed_by = job.assigned_to;
             try {
@@ -36,29 +37,38 @@ void (async () => {
                         if(!beneficiaries.find(e => {
                             return e.src === "ENCODER_PAY"
                         })) {
-                            if (node_info.cryptoAccounts.hive == 'sagarkothari88' && video.fromMobile) {
-                                beneficiaries.push({
-                                    account: node_info.cryptoAccounts.hive,
-                                    weight: 100,
-                                    src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
-                                })
+                            if (node_info.cryptoAccounts.hive == mobileAppDevName && video.fromMobile) {
+                                if (node_info.cryptoAccounts.hive !== video.owner) {
+                                    beneficiaries.push({
+                                        account: node_info.cryptoAccounts.hive,
+                                        weight: 100,
+                                        src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
+                                    })
+                                }
                             } else if (video.fromMobile) {
-                                beneficiaries.push({
-                                    account: node_info.cryptoAccounts.hive,
-                                    weight: 100,
-                                    src: 'ENCODER_PAY'
-                                })
-                                beneficiaries.push({
-                                    account: 'sagarkothari88',
-                                    weight: 100,
-                                    src: 'MOBILE_APP_PAY'
-                                })
+                                if (node_info.cryptoAccounts.hive !== video.owner) {
+                                    beneficiaries.push({
+                                        account: node_info.cryptoAccounts.hive,
+                                        weight: 100,
+                                        src: 'ENCODER_PAY'
+                                    })
+                                }
+                                if (mobileAppDevName !== video.owner) {
+                                    beneficiaries.push({
+                                        account: mobileAppDevName,
+                                        weight: 100,
+                                        src: 'MOBILE_APP_PAY'
+                                    })
+                                }
                             } else {
-                                beneficiaries.push({
-                                    account: node_info.cryptoAccounts.hive,
-                                    weight: 100,
-                                    src: 'ENCODER_PAY'
-                                })
+                                // if video is published by encoder, no need 
+                                if (node_info.cryptoAccounts.hive !== video.owner) {
+                                    beneficiaries.push({
+                                        account: node_info.cryptoAccounts.hive,
+                                        weight: 100,
+                                        src: 'ENCODER_PAY'
+                                    })
+                                }
                             }
                         }
                     }

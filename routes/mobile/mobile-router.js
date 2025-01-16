@@ -479,7 +479,7 @@ router.get(
 
       //Fetch external encoding data.
       let job;
-      if (video.job_id && video.status !== 'published' && video.status !== 'publish_manual' && video.status !== 'encoding_failed' && video.status !== "ipfs_pinning" && video.status !== "ipfs_pinning_failed") {
+      if (video.job_id && video.status !== 'published' && video.status !== 'publish_manual' && video.status !== 'encoding_failed' && video.status !== "ipfs_pinning" && video.status !== "ipfs_pinning_failed" && video.status !== 'publish_later') {
         try {
           const { data: info } = await Axios.get(
             `${global.APP_ENCODER_ENDPOINT}/api/v0/gateway/jobstatus/${video.job_id}`
@@ -933,10 +933,14 @@ router.post(
         const [account] = await hive.api.getAccountsAsync([req.body.owner]);
         const postingAuths = account.posting.account_auths
         const threespeakAuth = postingAuths.filter(a => a[0] === 'threespeak');
-        if (threespeakAuth.length > 0) {
-          video.status = "published";
+        if (typeof req.body.publishLater === "boolean" && req.body.publishLater === true) {
+          video.status = "publish_later";
         } else {
-          video.status = "publish_manual";
+          if (threespeakAuth.length > 0) {
+            video.status = "published";
+          } else {
+            video.status = "publish_manual";
+          }
         }
         video.local_filename = filePath;
         if (req.body.isReel !== undefined && req.body.isReel === true) {

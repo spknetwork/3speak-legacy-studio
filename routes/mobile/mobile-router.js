@@ -937,7 +937,17 @@ router.post(
           video.status = "publish_later";
         } else {
           if (threespeakAuth.length > 0) {
-            video.status = "published";
+            if (typeof req.body.scheduled === "boolean" && req.body.scheduled === true) {
+              const publishDate = moment(req.body.publishData, moment.ISO_8601, true);
+              if (publishDate.isValid()) {
+                video.status = "scheduled";
+                video.publish_data = req.body.publishData;
+              } else {
+                video.status = "published";
+              }
+            } else {
+              video.status = "published";
+            }
           } else {
             video.status = "publish_manual";
           }

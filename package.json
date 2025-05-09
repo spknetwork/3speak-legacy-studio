@@ -27,6 +27,7 @@
     "connect-mongo": "^2.0.3",
     "cookie-parser": "^1.4.6",
     "crypto-price": "0.0.6",
+    "dayjs": "^1.11.13",
     "debug": "^2.6.9",
     "dids": "^2.4.3",
     "dotenv": "^15.0.1",

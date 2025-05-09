@@ -12,6 +12,7 @@ import { Cluster } from "@nftstorage/ipfs-cluster";
 import fs from "fs";
 import Axios from "axios";
 import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 
 hive.api.setOptions({
   useAppbaseApi: true,
@@ -162,6 +163,81 @@ router.get("/login", async (req, res) => {
     console.log(e);
     return res.status(500).send({ error: `Error is ${e.toString()}` });
   }
+});
+
+router.post('/login', async (req, res) => {
+  if (
+    req.body.username === undefined ||
+    req.body.username === null ||
+    req.body.username.length < 3 ||
+    req.body.proof === undefined ||
+    req.body.proof === null ||
+    req.body.proof.length < 3 ||
+    req.body.publicKey === undefined ||
+    req.body.publicKey === null ||
+    req.body.publicKey.length < 3 ||
+    req.body.challenge === undefined ||
+    req.body.challenge === null ||
+    req.body.challenge.length < 3
+  ) {
+    return res.status(500).send({ error: "Invalid request" });
+  }
+
+  let proofDay = dayjs(req.body.proof * 1000).add(5, "minute");
+  let nowDay = dayjs();
+
+  if (nowDay.isAfter(proofDay)) {
+    return res.status(500).send({ error: "Proof has expired. Please try again" });
+  }
+
+  const accounts = await dhiveClient.database.getAccounts([req.body.username]);
+  if (accounts.length !== 1) {
+    return res.status(500).send({ error: "Invalid Hive Username." });
+  }
+
+  const postingPublicKeys = accounts[0].posting.key_auths.map((e) => e[0]);
+  if (postingPublicKeys.includes(req.body.publicKey) === false) {
+    return res.status(500).send({ error: `Invalid Hive PubKey. ${pubkey} does not belong to ${username}` });
+  }
+
+  const sigValidity = dhive.PublicKey.fromString(req.body.publicKey).verify(
+    Buffer.from(dhive.cryptoUtils.sha256(`${req.body.proof}`)),
+    dhive.Signature.fromBuffer(Buffer.from(req.body.challenge, "hex"))
+  );
+
+  if (sigValidity !== true) {
+    return res.status(500).send({ error: `Invalid Signature. ${challenge} does not belong to ${username}`});
+  }
+
+  let contentCreator = await mongoDB.User.findOne({user_id: req.body.username});
+  if (contentCreator !== null && contentCreator.banned === true) {
+      const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
+      return res.render("banned", {banReason, user: contentCreator.email})
+  } else if (contentCreator !== null && contentCreator.self_deleted === true) {
+    const message =`No 3Speak Account found with name - ${req.body.username}`;
+    return res.status(500).send({ error: message });
+  }
+
+  let mobileUser = await mongoDB.MobileUser.findOne({
+    user_id: req.body.username,
+  });
+  if (mobileUser !== null && mobileUser.banned === true) {
+    const banReason =
+      "You were permanently banned from using 3Speak for violating our Terms of Service.";
+    return res.status(500).send({ error: banReason });
+  } else if (mobileUser !== null && mobileUser.self_deleted === true) {
+    const message =`No 3Speak Account found with name - ${req.body.username}`;
+    return res.status(500).send({ error: message });
+  }
+
+  var dataToSign = { user_id: req.body.username, network: "hive", banned: false };
+  var token = jwt.sign(dataToSign, config.AUTH_JWT_SECRET, {
+    expiresIn: "30d",
+  });
+
+  return res.send({
+    token: token,
+  });
 });
 
 router.post("/api/upload_image", async (req, res) => {

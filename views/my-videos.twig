@@ -115,7 +115,7 @@
                                 {% if video.title %}{{ video.title|substr(0,50)|escape }}{% else %}[NO TITLE]{% endif %}
                             </td>
                             <td class="align-middle">
-                                <i class="fas {{ helper.getIcon(video.status) }} fa-2x text-gray-300"></i> {{ video.visible_status }} {% if video.status == 'scheduled' %}for: <span id="iso-date-to-local" data-date="{{video.publishISO}}"></span>{% endif %}
+                                <i class="fas {{ helper.getIcon(video.status) }} fa-2x text-gray-300"></i> {{ video.visible_status }} {% if video.status == 'scheduled' %}for: {{video.publishISO}} {% endif %}
 
                                 
                             </td>

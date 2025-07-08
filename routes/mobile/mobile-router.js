@@ -1132,4 +1132,74 @@ router.get("/reported-posts", async (req, res) => {
   }
 });
 
+router.post('/vote', middleware.requireMobileLogin, async(req, res) => {
+  let {author = undefined, permlink = undefined, weight = 1000} = req.body;
+  if (author === null || author === undefined || permlink === null || permlink === undefined) {
+    return res.json({error: 'Author or permlink not supplied.'})
+  }
+  weight = parseInt(weight);
+  if (weight < -10000 || weight > 10000) {
+    return res.json({error: 'Invalid vote weight.'})
+  }
+  const operations = [['vote', { voter: req.user.user_id, author, permlink, weight }]];
+  hive.broadcast.send({
+    operations: operations
+  }, {posting: process.env.THREESPEAK_POSTING_WIF}, async(err, result) => {
+    if (err) {
+      console.error(`834 - Error occurred when adding a upvote - ${err.toString()}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Error broadcasting using upvote proxy. Please contact the support: ' + err.message
+      });
+    }
+    res.json({success: true, result: result})
+  })
+});
+
+router.post('/comment', middleware.requireMobileLogin, async(req, res) => {
+  const {author = undefined, permlink = undefined, comment = undefined} = req.body;
+  if (author === null || author === undefined || permlink === null || permlink === undefined || comment === null || comment === undefined) {
+    return res.json({error: 'Author or permlink or commentnot supplied.'})
+  }
+  const json = JSON.stringify({
+    app: '3SpeakComment/0.2'
+  });
+  const cPermlink = Date.now().toString(36);
+  const operations = [
+    ['comment', {
+      parent_author: author,
+      parent_permlink: permlink,
+      author: req.user.user_id,
+      permlink: cPermlink,
+      title: '',
+      body: comment,
+      json_metadata: json
+    }], ['comment_options', {
+      author: req.user.user_id,
+      permlink: cPermlink,
+      max_accepted_payout: '100000.000 SBD',
+      percent_hbd: 10000,
+      allow_votes: true,
+      allow_curation_rewards: true,
+      extensions: [[0, {
+        beneficiaries: [
+          {account: 'threespeakwallet', weight: 1100}
+        ]
+      }]]
+    }]
+  ];
+  hive.broadcast.send({
+    operations: operations
+  }, {posting: process.env.THREESPEAK_POSTING_WIF}, async(err, result) => {
+    if (err) {
+      console.error(`752 - Error occurred when adding a comment - ${err.toString()}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Error broadcasting using comment proxy. Please contact the support: ' + err.message
+      });
+    }
+    return res.json({success: true, result})
+  })
+});
+
 export default router;

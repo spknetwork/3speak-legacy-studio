@@ -24,46 +24,16 @@ Sentry.init({dsn: APP_SENTRY_DSN});
 var app = express();
 
 app.use((req, res, next) => {
-    const origin = req.header("Origin");
-
-    if (origin) {
-        res.header("Access-Control-Allow-Origin", origin);
-    }
-
-    res.header("Access-Control-Allow-Credentials", "true");
-
+    res.locals = Object.assign(res.locals, global);
+    res.header("Access-Control-Allow-Origin", req.header("Origin"));
+    res.header("Access-Control-Allow-Credentials", true);
     res.header(
         "Access-Control-Allow-Headers",
-        [
-            "Origin",
-            "X-Requested-With",
-            "Content-Type",
-            "Accept",
-            "Authorization",
-            // tus-specific headers (case-insensitive)
-            "Tus-Resumable",
-            "Upload-Length",
-            "Upload-Offset",
-            "Upload-Metadata",
-            "Upload-Concat",
-            "Upload-Defer-Length"
-        ].join(", ")
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
-
-    res.header(
-        "Access-Control-Allow-Methods",
-        "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-
-    res.header("Access-Control-Max-Age", "86400");
-
-    // Reply immediately to preflight requests
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204);
-    }
-
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
     next();
-});
+})
 app.set('trust proxy', true)
 app.use(Sentry.Handlers.requestHandler());
 

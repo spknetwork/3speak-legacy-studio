@@ -32,6 +32,10 @@ app.use((req, res, next) => {
         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+    // tus requires OPTIONS to succeed
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(200);
+    }
     next();
 })
 app.set('trust proxy', true)

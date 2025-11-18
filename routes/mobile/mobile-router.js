@@ -217,15 +217,15 @@ router.post('/login', async (req, res) => {
   );
 
   if (sigValidity !== true) {
-    return res.status(500).send({ error: `Invalid Signature. ${challenge} does not belong to ${username}`});
+    return res.status(500).send({ error: `Invalid Signature. ${challenge} does not belong to ${username}` });
   }
 
-  let contentCreator = await mongoDB.User.findOne({user_id: req.body.username});
+  let contentCreator = await mongoDB.User.findOne({ user_id: req.body.username });
   if (contentCreator !== null && contentCreator.banned === true) {
-      const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
-      return res.render("banned", {banReason, user: contentCreator.email})
+    const banReason = "You were permanently banned from using 3Speak for violating our Terms of Service.";
+    return res.render("banned", { banReason, user: contentCreator.email })
   } else if (contentCreator !== null && contentCreator.self_deleted === true) {
-    const message =`No 3Speak Account found with name - ${req.body.username}`;
+    const message = `No 3Speak Account found with name - ${req.body.username}`;
     return res.status(500).send({ error: message });
   }
 
@@ -237,7 +237,7 @@ router.post('/login', async (req, res) => {
       "You were permanently banned from using 3Speak for violating our Terms of Service.";
     return res.status(500).send({ error: banReason });
   } else if (mobileUser !== null && mobileUser.self_deleted === true) {
-    const message =`No 3Speak Account found with name - ${req.body.username}`;
+    const message = `No 3Speak Account found with name - ${req.body.username}`;
     return res.status(500).send({ error: message });
   }
 
@@ -419,6 +419,28 @@ router.post(
     }
     if (typeof req.body.jsonMetaDataAppName === "string" && req.body.jsonMetaDataAppName.length > 0) {
       videoEntry.jsonMetaDataAppName = req.body.jsonMetaDataAppName;
+    }
+    const [account] = await hive.api.getAccountsAsync([user]);
+    const postingAuths = account.posting.account_auths
+    const threespeakAuth = postingAuths.filter(a => a[0] === 'threespeak');
+    if (typeof req.body.publishLater === "boolean" && req.body.publishLater === true) {
+      videoEntry.status = "publish_later";
+    } else {
+      if (threespeakAuth.length > 0) {
+        if (typeof req.body.scheduled === "boolean" && req.body.scheduled === true) {
+          const publishDate = moment(req.body.publishData, moment.ISO_8601, true);
+          if (publishDate.isValid()) {
+            videoEntry.status = "scheduled";
+            videoEntry.publish_data = req.body.publishData;
+          } else {
+            videoEntry.status = "published";
+          }
+        } else {
+          videoEntry.status = "published";
+        }
+      } else {
+        videoEntry.status = "publish_manual";
+      }
     }
     console.log(`request body: ${JSON.stringify(req.body)}`);
     if (req.body.thumbnail !== undefined) {
@@ -982,7 +1004,7 @@ router.post(
               src: 'ENCODER_PAY_AND_MOBILE_APP_PAY'
             });
             video.beneficiaries = JSON.stringify(beneficiaries);
-          } catch(e) {
+          } catch (e) {
             console.log(`Error while parsing beneficiaries. request sent this - ${req.body.beneficiaries}`);
             console.error(e);
             video.beneficiaries = JSON.stringify({
@@ -1073,7 +1095,7 @@ router.post("/report-user", middleware.requireMobileLogin, async (req, res) => {
       const value = await schema.validateAsync(req.body);
       const result = await mongoDB.ReportedUser.findOneAndUpdate(
         { name: req.body.username }, // check if exists
-        { $setOnInsert: {name: req.body.username, reason: req.body.reason, reportedBy: req.user.user_id}},
+        { $setOnInsert: { name: req.body.username, reason: req.body.reason, reportedBy: req.user.user_id } },
         { upsert: true, new: true, setDefaultsOnInsert: true } // Options
       );
       return res.send({
@@ -1114,7 +1136,7 @@ router.post("/report-post", middleware.requireMobileLogin, async (req, res) => {
       const value = await schema.validateAsync(req.body);
       const result = await mongoDB.ReportedData.findOneAndUpdate(
         { name: req.body.username, permlink: req.body.permlink }, // check if exists
-        { $setOnInsert: {name: req.body.username, permlink: req.body.permlink, reason: req.body.reason, reportedBy: req.user.user_id}},
+        { $setOnInsert: { name: req.body.username, permlink: req.body.permlink, reason: req.body.reason, reportedBy: req.user.user_id } },
         { upsert: true, new: true, setDefaultsOnInsert: true } // Options
       );
       return res.send({
@@ -1144,19 +1166,19 @@ router.get("/reported-posts", async (req, res) => {
   }
 });
 
-router.post('/vote', middleware.requireMobileLogin, async(req, res) => {
-  let {author = undefined, permlink = undefined, weight = 1000} = req.body;
+router.post('/vote', middleware.requireMobileLogin, async (req, res) => {
+  let { author = undefined, permlink = undefined, weight = 1000 } = req.body;
   if (author === null || author === undefined || permlink === null || permlink === undefined) {
-    return res.json({error: 'Author or permlink not supplied.'})
+    return res.json({ error: 'Author or permlink not supplied.' })
   }
   weight = parseInt(weight);
   if (weight < -10000 || weight > 10000) {
-    return res.json({error: 'Invalid vote weight.'})
+    return res.json({ error: 'Invalid vote weight.' })
   }
   const operations = [['vote', { voter: req.user.user_id, author, permlink, weight }]];
   hive.broadcast.send({
     operations: operations
-  }, {posting: process.env.THREESPEAK_POSTING_WIF}, async(err, result) => {
+  }, { posting: process.env.THREESPEAK_POSTING_WIF }, async (err, result) => {
     if (err) {
       console.error(`834 - Error occurred when adding a upvote - ${err.toString()}`);
       return res.status(500).json({
@@ -1164,14 +1186,14 @@ router.post('/vote', middleware.requireMobileLogin, async(req, res) => {
         error: 'Error broadcasting using upvote proxy. Please contact the support: ' + err.message
       });
     }
-    res.json({success: true, result: result})
+    res.json({ success: true, result: result })
   })
 });
 
-router.post('/comment', middleware.requireMobileLogin, async(req, res) => {
-  const {author = undefined, permlink = undefined, comment = undefined} = req.body;
+router.post('/comment', middleware.requireMobileLogin, async (req, res) => {
+  const { author = undefined, permlink = undefined, comment = undefined } = req.body;
   if (author === null || author === undefined || permlink === null || permlink === undefined || comment === null || comment === undefined) {
-    return res.json({error: 'Author or permlink or commentnot supplied.'})
+    return res.json({ error: 'Author or permlink or commentnot supplied.' })
   }
   const json = JSON.stringify({
     app: '3SpeakComment/0.2'
@@ -1195,14 +1217,14 @@ router.post('/comment', middleware.requireMobileLogin, async(req, res) => {
       allow_curation_rewards: true,
       extensions: [[0, {
         beneficiaries: [
-          {account: 'threespeakwallet', weight: 1100}
+          { account: 'threespeakwallet', weight: 1100 }
         ]
       }]]
     }]
   ];
   hive.broadcast.send({
     operations: operations
-  }, {posting: process.env.THREESPEAK_POSTING_WIF}, async(err, result) => {
+  }, { posting: process.env.THREESPEAK_POSTING_WIF }, async (err, result) => {
     if (err) {
       console.error(`752 - Error occurred when adding a comment - ${err.toString()}`);
       return res.status(500).json({
@@ -1210,7 +1232,7 @@ router.post('/comment', middleware.requireMobileLogin, async(req, res) => {
         error: 'Error broadcasting using comment proxy. Please contact the support: ' + err.message
       });
     }
-    return res.json({success: true, result})
+    return res.json({ success: true, result })
   })
 });
 
